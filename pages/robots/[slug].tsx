@@ -56,7 +56,7 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
               <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 mb-6">
                 <h3 className="text-xl font-semibold mb-4">Especificaciones</h3>
                 <div className="space-y-3">
-                  {robot.specs.map((s) => (
+                  {(robot.specs || []).map((s) => (
                     <div key={s.label} className="flex justify-between border-b border-gray-700 pb-2">
                       <span className="text-gray-400">{s.label}</span>
                       <span className="font-semibold text-white">{s.value}</span>
@@ -79,7 +79,7 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
           {/* Descripción completa */}
           <div className="mt-12 bg-gray-800 p-8 rounded-lg border border-gray-700">
             <h2 className="text-2xl font-bold mb-4">Descripción</h2>
-            <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{robot.fullDescription}</p>
+            <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{robot.fullDescription || robot.description}</p>
           </div>
 
           {/* Proyecto relacionado */}
