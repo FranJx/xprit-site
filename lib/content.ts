@@ -72,8 +72,8 @@ export function getRobotBySlug(slug: string): RobotData | null {
   
   return {
     ...metadata,
-    specs: specs.specs,
-    fullDescription: specs.description,
+    specs: Array.isArray(specs) ? specs : specs.specs || [],
+    fullDescription: specs.description || '',
   }
 }
 
