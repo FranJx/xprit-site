@@ -1,0 +1,14 @@
+{
+  "slug": "predator-xt",
+  "name": "Predator XT",
+  "category": "Sumo Autónomo",
+  "year": 2022,
+  "description": "Robot sumo autónomo equipado con la placa XT-RC para máximo rendimiento en combate. Diseño agresivo y mecanismo de empuje de gran potencia.",
+  "mainImage": "/content/robots/predator-xt/predator-xt.png",
+  "features": [
+    "Placa XT-RC de control avanzado",
+    "Motor de empuje de alta potencia",
+    "Detección de bordes en tiempo real",
+    "Algoritmo de combate inteligente"
+  ]
+}

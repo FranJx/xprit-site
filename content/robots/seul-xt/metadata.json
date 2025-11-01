@@ -1,0 +1,14 @@
+{
+  "slug": "seul-xt",
+  "name": "Seúl XT",
+  "category": "Velocistas",
+  "year": 2023,
+  "description": "Robot velocista de alta velocidad diseñado para carreras autónomas. Equipado con visión por computadora para seguimiento de línea extremadamente preciso.",
+  "mainImage": "/content/robots/seul-xt/seul-xt.png",
+  "features": [
+    "Cámara para visión por computadora",
+    "Aceleración ultra-rápida",
+    "Suspensión independiente",
+    "Algoritmo de seguimiento PID avanzado"
+  ]
+}

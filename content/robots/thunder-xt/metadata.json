@@ -1,0 +1,14 @@
+{
+  "slug": "thunder-xt",
+  "name": "Thunder XT",
+  "category": "VSSS",
+  "year": 2024,
+  "description": "Micro-robot futbolero de la categoría VSSS (Very Small Size Soccer). Equipado con sistema de visión centralizado y control coordinado.",
+  "mainImage": "/content/robots/thunder-xt/thunder-xt.png",
+  "features": [
+    "Tamaño ultra-compacto (7.5cm)",
+    "Placa XT-Samurai especializada",
+    "Sistema de patada rápida",
+    "Coordinación por radiofrecuencia"
+  ]
+}

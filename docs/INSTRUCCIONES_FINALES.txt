@@ -1,0 +1,71 @@
+# 🎯 INSTRUCCIONES FINALES — Tipografía + Logo
+
+## Lo que necesitas hacer
+
+### 1️⃣ Copia tu archivo TTF
+```
+Origen:    Tu PC (donde tengas gangofthree.ttf)
+Destino:   c:\Users\Fran\Documents\WEBXPRIT\xprit-site\public\fonts\
+Archivo:   gangofthree.ttf
+```
+
+### 2️⃣ Copia tu logo
+```
+Origen:    Tu PC (donde tengas tu logo)
+Destino:   c:\Users\Fran\Documents\WEBXPRIT\xprit-site\public\images\
+Archivo:   logo.png
+```
+
+### 3️⃣ Reinicia servidor
+```powershell
+Ctrl + C
+npm run dev
+```
+
+### 4️⃣ Abre tu web
+```
+http://localhost:3000
+Ctrl + Shift + R (refresh)
+```
+
+---
+
+## Forma más fácil: Copiar rutas directas
+
+### En el Explorador de Windows (Windows + E)
+
+**Para fonts:**
+```
+c:\Users\Fran\Documents\WEBXPRIT\xprit-site\public\fonts\
+```
+Pega en la barra → Enter → Copia tu TTF aquí
+
+**Para images:**
+```
+c:\Users\Fran\Documents\WEBXPRIT\xprit-site\public\images\
+```
+Pega en la barra → Enter → Copia tu logo aquí
+
+---
+
+## ¡Eso es todo!
+
+**Tu web tendrá:**
+- ✨ Tipografía GangOfThree en logo y nombre
+- 🎨 Tu logo en Header y Footer
+- 🚀 Identidad visual profesional
+
+**Sin cambios de código. Solo copia 2 archivos.**
+
+---
+
+## 📖 Si necesitas más ayuda
+
+- `CARGAR_GANGOFTHREE.md` - Guía detallada para TTF
+- `CARGAR_LOGO.md` - Guía detallada para logo
+- `UBICACIONES.md` - Rutas exactas paso a paso
+- `LISTO_GANGOFTHREE.md` - Resumen completo
+
+---
+
+¡Adelante! 🚀

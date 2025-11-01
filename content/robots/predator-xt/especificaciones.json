@@ -1,0 +1,34 @@
+[
+  {
+    "label": "Categoría",
+    "value": "Sumo Autónomo"
+  },
+  {
+    "label": "Placa electrónica",
+    "value": "XT-RC"
+  },
+  {
+    "label": "Peso",
+    "value": "750g"
+  },
+  {
+    "label": "Dimensiones",
+    "value": "15cm x 15cm x 10cm"
+  },
+  {
+    "label": "Potencia de empuje",
+    "value": "45 kg fuerza"
+  },
+  {
+    "label": "Sensores",
+    "value": "Infrarrojos, acelerómetro, sensores de contacto"
+  },
+  {
+    "label": "Armadura",
+    "value": "Aluminio + HDPE"
+  },
+  {
+    "label": "Logros",
+    "value": "Campeón Sumo RC Robotic People Fest 2020"
+  }
+]

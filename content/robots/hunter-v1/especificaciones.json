@@ -1,0 +1,12 @@
+{
+  "specs": [
+    { "label": "Peso", "value": "14.5 kg" },
+    { "label": "Dimensiones", "value": "68 x 48 x 35 cm" },
+    { "label": "Motor principal", "value": "BLDC 1200W" },
+    { "label": "Velocidad máx.", "value": "3.5 m/s" },
+    { "label": "Batería", "value": "LiPo 6S 4000mAh" },
+    { "label": "Procesador", "value": "Jetson Nano" },
+    { "label": "Cámaras", "value": "2x USB 4K" }
+  ],
+  "description": "Hunter v1 es nuestro robot de competición estrella. Diseñado para máxima velocidad y precisión con sistema de visión por computadora integrado. Cuenta con brazo manipulador de 6 DOF y sistema de agarre inteligente."
+}

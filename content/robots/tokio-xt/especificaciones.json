@@ -1,0 +1,34 @@
+[
+  {
+    "label": "Categoría",
+    "value": "Minisumo"
+  },
+  {
+    "label": "Placa electrónica",
+    "value": "XT-Prime"
+  },
+  {
+    "label": "Peso",
+    "value": "490g"
+  },
+  {
+    "label": "Dimensiones",
+    "value": "10cm x 10cm x 8cm"
+  },
+  {
+    "label": "Velocidad máxima",
+    "value": "2.5 m/s"
+  },
+  {
+    "label": "Sensores",
+    "value": "Infrarrojos, acelerómetro, giroscopio"
+  },
+  {
+    "label": "Autonomía",
+    "value": "45 minutos"
+  },
+  {
+    "label": "Logros",
+    "value": "Campeón Nacional WRO 2023"
+  }
+]

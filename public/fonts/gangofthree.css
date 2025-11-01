@@ -1,0 +1,47 @@
+/* GangOfThree Font - Custom Web Font */
+/* 
+   Esta hoja de estilos importa la tipografía GangOfThree
+   Coloca los archivos de fuente en esta carpeta:
+   - gangofthree.woff
+   - gangofthree.woff2
+   - gangofthree.ttf
+*/
+
+@font-face {
+  font-family: 'GangOfThree';
+  src: url('/fonts/gangofthree.woff2') format('woff2'),
+       url('/fonts/gangofthree.woff') format('woff'),
+       url('/fonts/gangofthree.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Clase para usar la tipografía */
+.gang-of-three {
+  font-family: 'GangOfThree', sans-serif;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+
+/* Variaciones */
+.gang-of-three-lg {
+  font-family: 'GangOfThree', sans-serif;
+  font-size: 3rem;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+
+.gang-of-three-xl {
+  font-family: 'GangOfThree', sans-serif;
+  font-size: 4rem;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+
+.gang-of-three-xxl {
+  font-family: 'GangOfThree', sans-serif;
+  font-size: 5rem;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}

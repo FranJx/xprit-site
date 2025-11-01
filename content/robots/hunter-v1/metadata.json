@@ -1,0 +1,9 @@
+{
+  "slug": "hunter-v1",
+  "name": "Hunter v1",
+  "category": "Competición",
+  "year": 2024,
+  "description": "Robot de competición con sistema de visión integrado y propulsión de alta velocidad.",
+  "mainImage": "main.jpg",
+  "features": ["Velocidad 3.5 m/s", "Visión IA", "Batería LiPo 6S"]
+}
