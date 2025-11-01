@@ -9,6 +9,8 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <link rel="stylesheet" href="/fonts/gangofthree.css" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
       </Head>
       <div className="flex flex-col min-h-screen">
         <Header />
