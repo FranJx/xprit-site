@@ -47,11 +47,7 @@ export default function RobotsPage({ robots }: { robots: Robot[] }) {
           </div>
 
           {/* Grid de robots */}
-          {robots.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <p>No hay robots aún. ¡Sube uno en content/robots/!</p>
-            </div>
-          ) : (
+          {robots.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {robots.map(robot => (
                 <Link key={robot.slug} href={`/robots/${robot.slug}`} className="group">
@@ -59,7 +55,7 @@ export default function RobotsPage({ robots }: { robots: Robot[] }) {
                     <div className="w-full h-48 bg-gray-700/50 flex items-center justify-center group-hover:bg-gray-700 transition-colors relative">
                       {robot.mainImage && (
                         <Image
-                          src={`/content/robots/${robot.slug}/images/${robot.mainImage}`}
+                          src={`/content/robots/${robot.slug}/${robot.mainImage}`}
                           alt={robot.name}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -78,18 +74,7 @@ export default function RobotsPage({ robots }: { robots: Robot[] }) {
                 </Link>
               ))}
             </div>
-          )}
-
-          {/* CTA */}
-          <div className="mt-16 p-8 bg-gray-800 border border-gray-700 rounded-lg text-center">
-            <h3 className="text-2xl font-bold mb-4">¿Quieres agregar un robot?</h3>
-            <p className="text-gray-400 mb-6">
-              Solo crea una carpeta en <code className="bg-gray-900 px-2 py-1 rounded text-cyan-300">content/robots/</code> con los archivos JSON e imágenes. ¡Se actualiza automáticamente!
-            </p>
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="inline-block px-6 py-3 bg-cyan-500 text-black rounded-lg font-semibold hover:bg-cyan-400 transition-colors">
-              Ver documentación en GitHub
-            </a>
-          </div>
+          ) : null}
         </div>
       </main>
     </>

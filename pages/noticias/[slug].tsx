@@ -61,12 +61,6 @@ export default function Post() {
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
               </article>
-
-              <div className="mt-12 p-6 bg-gray-800 border border-gray-700 rounded-lg">
-                <p className="text-gray-400">
-                  📝 <strong>Nota:</strong> En el futuro, el contenido de las noticias se cargará desde un CMS o MDX para facilitar la edición.
-                </p>
-              </div>
             </>
           ) : (
             <div className="text-center py-12">

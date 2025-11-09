@@ -46,9 +46,6 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
                   />
                 )}
               </div>
-              <p className="text-sm text-gray-400 mt-4">
-                💡 Sube más fotos a <code className="bg-gray-900 px-1 rounded text-cyan-300">content/robots/{robot.slug}/images/</code>
-              </p>
             </div>
 
             {/* Info y especificaciones */}
