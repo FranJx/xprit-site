@@ -1,8 +1,8 @@
 {
   "slug": "tokio-xt",
   "name": "Tokio XT",
-  "category": "Minisumo",
-  "year": 2023,
+  "category": "Minisumo Autonomo Pro",
+  "year": 2022,
   "description": "Robot minisumo de alto rendimiento equipado con placa XT-Prime. Diseñado para máxima velocidad y estabilidad en competencias de minisumo.",
   "mainImage": "tokio-xt.png",
   "features": [
