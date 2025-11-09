@@ -4,7 +4,7 @@
   "category": "Minisumo",
   "year": 2023,
   "description": "Robot minisumo de alto rendimiento equipado con placa XT-Prime. Diseñado para máxima velocidad y estabilidad en competencias de minisumo.",
-  "mainImage": "/content/robots/tokio-xt/tokio-xt.png",
+  "mainImage": "tokio-xt.png",
   "features": [
     "Placa XT-Prime multisensores",
     "Sensores de línea ultrapreciso",
