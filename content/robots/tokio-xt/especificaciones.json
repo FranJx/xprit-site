@@ -17,18 +17,22 @@
   },
   {
     "label": "Velocidad máxima",
-    "value": "2.5 m/s"
+    "value": "800 RPM"
   },
   {
     "label": "Sensores",
-    "value": "Infrarrojos, acelerómetro, giroscopio"
+    "value": "5 x JS40F, 2 x QTR-1A"
   },
   {
-    "label": "Autonomía",
-    "value": "45 minutos"
+    "label": "Batería",
+    "value": "Li-Po 11.1v 300mAh"
+  },
+  {
+    "label": "Motores",
+    "value": "JSumo Coremotor 400RPM 6v"
   },
   {
     "label": "Logros",
-    "value": "Campeón Nacional WRO 2023"
+    "value": "Campeón Nacional 2023"
   }
 ]
