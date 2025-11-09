@@ -39,7 +39,7 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
               <div className="w-full h-96 bg-gray-900 rounded relative overflow-hidden">
                 {robot.mainImage && (
                   <Image
-                    src={`/content/robots/${robot.slug}/images/${robot.mainImage}`}
+                    src={`/content/robots/${robot.slug}/${robot.mainImage}`}
                     alt={robot.name}
                     fill
                     className="object-contain"
