@@ -4,16 +4,16 @@ import Link from 'next/link'
 export default function QuienSomos() {
   const team = [
     { name: 'Franco Joaquín Aguirre Elizalde', role: 'Fundador y Líder técnico', area: '8+ años en robótica, 40+ podios en competencias' },
-    { name: 'Equipo de diseño CAD', role: 'Ingeniería mecánica', area: 'SolidWorks, modelado 3D y prototipado' },
+    { name: 'Marcelo David Benitez', role: 'Co-lider y Diseñador', area: 'Años de experiencia en Robotica educativa y de Competencia' },
     { name: 'Equipo de electrónica', role: 'Diseño de placas y firmware', area: 'XT-Prime, XT-RC, XT-Samurai' },
     { name: 'Equipo de programación', role: 'Software y algoritmos', area: 'IA, visión por computadora, sistemas autónomos' },
   ]
 
   const logros = [
-    { num: '40+', desc: 'Podios en competiciones nacionales e internacionales' },
+    { num: '90+', desc: 'Podios en competiciones nacionales e internacionales' },
     { num: '2', desc: 'Campeonatos Nacionales WRO (2023, 2025)' },
     { num: '20+', desc: 'Robots desarrollados para competencia' },
-    { num: '3', desc: 'Placas electrónicas propias diseñadas' },
+    { num: '3+', desc: 'Placas electrónicas propias diseñadas' },
   ]
 
   const robots = [
@@ -32,7 +32,7 @@ export default function QuienSomos() {
     <>
       <Head>
         <title>Quiénes somos — XpriT Robotics</title>
-        <meta name="description" content="XpriT Robotics: equipo argentino de robótica con 40+ podios, campeón WRO 2023 y 2025, hardware propio y tecnología de nivel internacional." />
+        <meta name="description" content="XpriT Robotics: equipo argentino de robótica con 90+ podios, campeón WRO 2023 y 2025, hardware propio y tecnología de nivel internacional." />
       </Head>
       <main className="min-h-screen">
         {/* Hero */}
