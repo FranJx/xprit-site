@@ -16,6 +16,7 @@ export interface RobotMetadata {
 export interface RobotData extends RobotMetadata {
   specs: Array<{ label: string; value: string }>
   fullDescription: string
+  gallery: string[]
 }
 
 export interface NoticiasMetadata {
@@ -70,10 +71,23 @@ export function getRobotBySlug(slug: string): RobotData | null {
   const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
   const specs = JSON.parse(fs.readFileSync(specsPath, 'utf-8'))
   
+  // Cargar galería de imágenes desde public/content/robots/[slug]/
+  const publicGalleryDir = path.join(process.cwd(), 'public', 'content', 'robots', slug)
+  let gallery: string[] = []
+  
+  if (fs.existsSync(publicGalleryDir)) {
+    const files = fs.readdirSync(publicGalleryDir)
+    gallery = files
+      .filter(file => /\.(png|jpg|jpeg|webp)$/i.test(file))
+      .map(file => file)
+      .sort()
+  }
+  
   return {
     ...metadata,
     specs: specs || [],
     fullDescription: metadata.fullDescription || '',
+    gallery: gallery,
   }
 }
 

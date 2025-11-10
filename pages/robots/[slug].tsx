@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState } from 'react'
 import { getAllRobots, getRobotBySlug, RobotData } from '../../lib/content'
 
 export async function getStaticPaths() {
@@ -16,12 +17,24 @@ export async function getStaticProps({ params }: { params: { slug: string } }) {
 }
 
 export default function RobotPage({ robot }: { robot: RobotData }) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  
+  const gallery = robot.gallery && robot.gallery.length > 0 ? robot.gallery : [robot.mainImage]
+  const currentImage = gallery[currentImageIndex]
+  
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % gallery.length)
+  }
+  
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + gallery.length) % gallery.length)
+  }
   return (
     <>
       <Head>
         <title>{robot.name} — XpriT Robotics</title>
         <meta name="description" content={robot.description} />
-        <meta property="og:image" content={`/content/robots/${robot.slug}/images/${robot.mainImage}`} />
+        <meta property="og:image" content={`/content/robots/${robot.slug}/${robot.mainImage}`} />
       </Head>
 
       <main className="min-h-screen p-8">
@@ -36,16 +49,66 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
             {/* Galería de imágenes */}
             <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
               <h2 className="text-xl font-semibold mb-4">Galería</h2>
-              <div className="w-full h-96 bg-gray-900 rounded relative overflow-hidden">
-                {robot.mainImage && (
+              <div className="w-full h-96 bg-gray-900 rounded relative overflow-hidden flex items-center justify-center group">
+                {currentImage && (
                   <Image
-                    src={`/content/robots/${robot.slug}/${robot.mainImage}`}
+                    src={`/content/robots/${robot.slug}/${currentImage}`}
                     alt={robot.name}
                     fill
                     className="object-contain"
+                    priority
                   />
                 )}
+                
+                {/* Controles de navegación */}
+                {gallery.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-cyan-500 hover:bg-cyan-600 text-white p-2 rounded-full z-10 transition-colors"
+                      aria-label="Imagen anterior"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-cyan-500 hover:bg-cyan-600 text-white p-2 rounded-full z-10 transition-colors"
+                      aria-label="Siguiente imagen"
+                    >
+                      →
+                    </button>
+                  </>
+                )}
               </div>
+              
+              {/* Miniaturas */}
+              {gallery.length > 1 && (
+                <div className="flex gap-2 mt-4 overflow-x-auto">
+                  {gallery.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentImageIndex(idx)}
+                      className={`flex-shrink-0 w-16 h-16 rounded border-2 transition-all ${
+                        idx === currentImageIndex ? 'border-cyan-400' : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                    >
+                      <Image
+                        src={`/content/robots/${robot.slug}/${img}`}
+                        alt={`${robot.name} ${idx + 1}`}
+                        fill
+                        className="object-cover rounded"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* Contador */}
+              {gallery.length > 1 && (
+                <p className="text-sm text-gray-400 mt-3 text-center">
+                  {currentImageIndex + 1} de {gallery.length}
+                </p>
+              )}
             </div>
 
             {/* Info y especificaciones */}
