@@ -5,25 +5,31 @@ export default function LinksPage() {
     {
       name: 'Instagram',
       icon: '📷',
-      url: 'https://instagram.com/xprit_robotics',
+      url: 'https://www.instagram.com/xprit_robotics/',
       color: 'from-pink-500 to-purple-500'
     },
     {
-      name: 'YouTube',
+      name: 'YouTube - FrnJx',
       icon: '▶️',
-      url: 'https://youtube.com/@xprit_robotics',
+      url: 'https://www.youtube.com/@FrnJx_',
+      color: 'from-red-500 to-red-600'
+    },
+    {
+      name: 'YouTube - XpriT Robotics',
+      icon: '▶️',
+      url: 'https://www.youtube.com/@XpriT_Robotics',
       color: 'from-red-500 to-red-600'
     },
     {
       name: 'GitHub',
       icon: '🐙',
-      url: 'https://github.com/xprit-robotics',
+      url: 'https://github.com/FranJx/XpriT-Robots-OS',
       color: 'from-gray-800 to-gray-900'
     },
     {
       name: 'Contacto',
       icon: '✉️',
-      url: '/contacto',
+      url: 'mailto:info@xprit-robotics.com',
       color: 'from-cyan-500 to-blue-500'
     },
     {
