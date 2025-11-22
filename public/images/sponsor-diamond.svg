@@ -1,0 +1,41 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Diamond badge -->
+  <defs>
+    <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e9d5ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Glow background -->
+  <circle cx="100" cy="100" r="100" fill="url(#diamondGrad)" opacity="0.2"/>
+  
+  <!-- Outer circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#diamondGrad)" filter="url(#shadow)"/>
+  
+  <!-- Inner circle with shine -->
+  <circle cx="100" cy="100" r="85" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8"/>
+  
+  <!-- Medal ribbon effect -->
+  <rect x="85" y="15" width="30" height="40" fill="#a855f7" opacity="0.9"/>
+  
+  <!-- Diamond shape -->
+  <polygon points="100,35 115,100 100,165 85,100" fill="#fbbf24" opacity="0.9" filter="url(#glow)"/>
+  
+  <!-- Crown effect -->
+  <path d="M 70 120 L 75 100 L 85 110 L 100 90 L 115 110 L 125 100 L 130 120" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.8"/>
+  
+  <!-- Shine effect -->
+  <ellipse cx="70" cy="70" rx="20" ry="25" fill="white" opacity="0.4"/>
+</svg>

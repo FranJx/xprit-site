@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programa de Sponsorships XpriT Robotics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #1a1a1a;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 3px solid #1e40af;
+            padding-bottom: 30px;
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .logo-container img {
+            max-width: 120px;
+            height: auto;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #666;
+            font-style: italic;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #1e40af;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1e40af;
+            padding-left: 15px;
+        }
+
+        h3 {
+            font-size: 1.4em;
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            background: #f0f4ff;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        .plan-card {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-left: 4px solid #1e40af;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            page-break-inside: avoid;
+        }
+
+        .plan-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .plan-meta {
+            font-size: 0.95em;
+        }
+
+        .plan-meta strong {
+            color: #1e40af;
+        }
+
+        .benefits {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .benefits li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .benefits li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        th {
+            background: #1e40af;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .pricing-box {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .price-amount {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .price-note {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .contact-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border: 1px solid #1e40af;
+        }
+
+        .contact-section h3 {
+            margin-top: 0;
+            background: none;
+        }
+
+        .contact-info {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+
+        .contact-info strong {
+            color: #1e40af;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .visibility-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .visibility-section h4 {
+            color: #1e40af;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .visibility-section ul {
+            list-style-position: inside;
+            margin-left: 0;
+        }
+
+        .visibility-section li {
+            margin-bottom: 8px;
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .step {
+            background: white;
+            border: 2px solid #1e40af;
+            padding: 15px;
+            border-radius: 5px;
+            counter-increment: step-counter;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #1e40af;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .step-title {
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                background: white;
+                box-shadow: none;
+                max-width: 100%;
+                padding: 20px;
+            }
+            a {
+                text-decoration: none;
+                color: #1e40af;
+            }
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-container">
+                <img src="../../../public/images/logo.png" alt="XpriT Robotics Logo">
+            </div>
+            <h1>Programa de Sponsorships</h1>
+            <p class="subtitle">XpriT Robotics - Robótica Competitiva Argentina</p>
+        </header>
+
+        <!-- Objetivo -->
+        <section class="section">
+            <h2>Objetivo</h2>
+            <p>Establecer un programa de sponsorship mensual que permita a empresas y organizaciones apoyar el desarrollo de robótica competitiva argentina, obteniendo visibilidad y beneficios tangibles.</p>
+        </section>
+
+        <!-- Planes -->
+        <section class="section">
+            <h2>Planes de Sponsorship</h2>
+
+            <!-- Silver -->
+            <div class="plan-card">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="../../../public/images/sponsor-silver.svg" alt="Silver Badge" style="width: 80px; height: 80px;">
+                </div>
+                <h3>PLAN SILVER</h3>
+                <div class="plan-header">
+                    <div class="plan-meta">
+                        <strong>Inversión:</strong> USD $50
+                    </div>
+                    <div class="plan-meta">
+                        <strong>Duración Mínima:</strong> 3 meses
+                    </div>
+                </div>
+                <h4 style="margin-top: 15px; color: #1e40af;">Beneficios:</h4>
+                <ul class="benefits">
+                    <li>Logo en página web (sección sponsors - pequeño)</li>
+                    <li>Mención en redes sociales (1x/semana)</li>
+                    <li>Stickers con logo del sponsor</li>
+                    <li>Certificado digital de sponsorship</li>
+                    <li>Descuento 10% en servicios de consultoría</li>
+                </ul>
+            </div>
+
+            <!-- Gold -->
+            <div class="plan-card">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="../../../public/images/sponsor-gold.svg" alt="Gold Badge" style="width: 80px; height: 80px;">
+                </div>
+                <h3>PLAN GOLD</h3>
+                <div class="plan-header">
+                    <div class="plan-meta">
+                        <strong>Inversión:</strong> USD $150
+                    </div>
+                    <div class="plan-meta">
+                        <strong>Duración Mínima:</strong> 3 meses
+                    </div>
+                </div>
+                <h4 style="margin-top: 15px; color: #1e40af;">Beneficios:</h4>
+                <ul class="benefits">
+                    <li>Logo en página web (sección sponsors - medio)</li>
+                    <li>Menciones en redes sociales (1x/semana)</li>
+                    <li>Stickers y materiales con logo</li>
+                    <li>Mención en notas de prensa</li>
+                    <li>Descuento 15% en servicios de consultoría</li>
+                    <li>Mención en eventos y competiciones</li>
+                </ul>
+            </div>
+
+            <!-- Platinum -->
+            <div class="plan-card">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="../../../public/images/sponsor-platinum.svg" alt="Platinum Badge" style="width: 80px; height: 80px;">
+                </div>
+                <h3>PLAN PLATINUM</h3>
+                <div class="plan-header">
+                    <div class="plan-meta">
+                        <strong>Inversión:</strong> USD $300
+                    </div>
+                    <div class="plan-meta">
+                        <strong>Duración Mínima:</strong> 6 meses
+                    </div>
+                </div>
+                <h4 style="margin-top: 15px; color: #1e40af;">Beneficios:</h4>
+                <ul class="benefits">
+                    <li>Logo prominente en página web (sección sponsors - grande)</li>
+                    <li>Menciones semanales en redes sociales + historias destacadas</li>
+                    <li>Página de sponsor personalizada (landing page)</li>
+                    <li>Logo en chasis de robots (1 robot mínimo)</li>
+                    <li>Mención principal en notas de prensa</li>
+                    <li>Video publicitario corto (30-60s)</li>
+                    <li>Lugar en bandera de sponsors</li>
+                    <li>Parte del stand en competiciones</li>
+                    <li>Indumentaria del equipo con logo (camisa/gorro)</li>
+                    <li>Mención destacada en eventos y competiciones</li>
+                    <li>Descuento 25% en servicios de consultoría</li>
+                </ul>
+            </div>
+
+            <!-- Diamante -->
+            <div class="plan-card">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="../../../public/images/sponsor-diamond.svg" alt="Diamante Badge" style="width: 80px; height: 80px;">
+                </div>
+                <h3>PLAN DIAMANTE</h3>
+                <div class="plan-header">
+                    <div class="plan-meta">
+                        <strong>Inversión:</strong> USD $500+
+                    </div>
+                    <div class="plan-meta">
+                        <strong>Duración Mínima:</strong> 12 meses
+                    </div>
+                </div>
+                <h4 style="margin-top: 15px; color: #1e40af;">Beneficios:</h4>
+                <ul class="benefits">
+                    <li>Logo prominente en homepage de XpriT</li>
+                    <li>Mención prioritaria en redes sociales (2-3x/semana)</li>
+                    <li>Página de sponsor personalizada</li>
+                    <li>Logo en chasis de TODOS los robots del equipo</li>
+                    <li>Mención principal en todas las notas de prensa</li>
+                    <li>Video publicitario largo (2-3 min) + integración en contenidos</li>
+                    <li>Lugar principal en bandera de sponsors + área destacada en stand</li>
+                    <li>Presencia prominente en competiciones nacionales</li>
+                    <li>Indumentaria completa del equipo con branding</li>
+                    <li>Robot con branding personalizado (posible co-diseño)</li>
+                    <li>Mención en comunicados de prensa (coautor)</li>
+                    <li>Reuniones estratégicas regulares</li>
+                    <li>Descuento 35% en servicios de consultoría</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="page-break"></div>
+
+        <!-- Comparativa -->
+        <section class="section">
+            <h2>Comparativa de Planes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Característica</th>
+                        <th>Silver</th>
+                        <th>Gold</th>
+                        <th>Platinum</th>
+                        <th>Diamante</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Inversión Mensual</strong></td>
+                        <td>USD $50</td>
+                        <td>USD $150</td>
+                        <td>USD $300</td>
+                        <td>USD $500+</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Duración Mínima</strong></td>
+                        <td>3 meses</td>
+                        <td>3 meses</td>
+                        <td>6 meses</td>
+                        <td>12 meses</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Logo en Web</strong></td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Menciones Redes</strong></td>
+                        <td>Semanal</td>
+                        <td>Semanal</td>
+                        <td>Semanal</td>
+                        <td>2-3x/semana</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Página Personalizada</strong></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Logo en Robots</strong></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Video Publicitario</strong></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Descuento Consultoría</strong></td>
+                        <td>10%</td>
+                        <td>15%</td>
+                        <td>25%</td>
+                        <td>35%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Proceso -->
+        <section class="section">
+            <h2>Proceso de Onboarding</h2>
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Solicitud</div>
+                    <p>Empresa contacta a XpriT Robotics. Se define plan y duración.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Contrato</div>
+                    <p>Acuerdo de sponsorship y especificaciones de branding.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Configuración</div>
+                    <p>Setup en plataforma, materiales y logo/assets entregados.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Activación</div>
+                    <p>Logo publicado, menciones inician, integración en eventos.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Reportes</div>
+                    <p>Reportes mensuales de visibilidad (Platinum/Diamante).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contacto -->
+        <section class="section">
+            <div class="contact-section">
+                <h3>Contacto</h3>
+                <div class="contact-info">
+                    <p><strong>Email:</strong> info@xprit-robotics.com</p>
+                    <p><strong>Web:</strong> xprit-robotics.com/sponsors</p>
+                    <p style="margin-top: 15px; font-style: italic;">Para consultas sobre sponsorship o planes personalizados, contáctanos sin compromiso.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>XpriT Robotics - Programa de Sponsorships 2025</p>
+            <p>Robótica Competitiva Argentina | Noviembre 2025</p>
+            <p>Última actualización: 22 de Noviembre de 2025</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -25,6 +25,7 @@ export default function Header() {
           <Link href="/" className="text-gray-300 hover:text-cyan-400 transition-colors duration-200">Inicio</Link>
           <Link href="/robots" className="text-gray-300 hover:text-cyan-400 transition-colors duration-200">Robots</Link>
           <Link href="/noticias" className="text-gray-300 hover:text-cyan-400 transition-colors duration-200">Noticias</Link>
+          <Link href="/sponsors" className="text-gray-300 hover:text-cyan-400 transition-colors duration-200">Sponsors</Link>
           <Link href="/quien-somos" className="text-gray-300 hover:text-cyan-400 transition-colors duration-200">Quiénes somos</Link>
           <Link href="/contacto" className="text-gray-300 hover:text-cyan-400 transition-colors duration-200">Contacto</Link>
         </nav>
