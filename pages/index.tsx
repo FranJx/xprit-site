@@ -54,7 +54,7 @@ export default function Home() {
               ].map((robot) => (
                 <Link key={robot.slug} href={`/robots/${robot.slug}`} className="group p-6 bg-gray-900 border border-gray-700 rounded-lg hover:border-cyan-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-105 cursor-pointer">
                   <div className="w-full h-48 bg-gray-700/50 rounded mb-4 flex items-center justify-center group-hover:bg-gray-700 transition-colors">
-                    <span className="text-gray-500">🤖 {robot.category}</span>
+                    <span className="text-gray-500">{robot.category}</span>
                   </div>
                   <h3 className="text-xl font-semibold mb-2 text-cyan-300">{robot.name}</h3>
                   <p className="text-gray-400 text-sm">{robot.desc}</p>
@@ -83,11 +83,11 @@ export default function Home() {
             </div>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="p-8 bg-gray-800 border border-gray-700 rounded-lg">
-                <p className="text-lg text-cyan-300 font-semibold mb-4">🏆 Campeón Nacional WRO 2023</p>
+                <p className="text-lg text-cyan-300 font-semibold mb-4">Campeón Nacional WRO 2023</p>
                 <p className="text-gray-400">Tokio XT se coronó campeón en la categoría de robótica de alto rendimiento.</p>
               </div>
               <div className="p-8 bg-gray-800 border border-gray-700 rounded-lg">
-                <p className="text-lg text-cyan-300 font-semibold mb-4">🏆 Campeón Nacional WRO 2025</p>
+                <p className="text-lg text-cyan-300 font-semibold mb-4">Campeón Nacional WRO 2025</p>
                 <p className="text-gray-400">Seguimos demostrando excelencia con nuevas innovaciones y diseños.</p>
               </div>
             </div>

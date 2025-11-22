@@ -47,7 +47,7 @@ export default function QuienSomos() {
           
           {/* Historia */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold mb-6 text-cyan-300">📖 Historia</h2>
+            <h2 className="text-3xl font-bold mb-6 text-cyan-300">Historia</h2>
             <div className="space-y-4 text-gray-300 leading-relaxed">
               <p>
                 XpriT Robotics fue fundado alrededor del año <strong>2020</strong> como un proyecto independiente dedicado al desarrollo de robots competitivos y hardware electrónico propio.
@@ -64,13 +64,13 @@ export default function QuienSomos() {
           {/* Misión y Visión */}
           <div className="grid md:grid-cols-2 gap-8 mb-16">
             <div className="p-6 bg-gray-800 border border-gray-700 rounded-lg">
-              <h3 className="text-2xl font-bold mb-4 text-cyan-300">🎯 Misión</h3>
+              <h3 className="text-2xl font-bold mb-4 text-cyan-300">Misión</h3>
               <p className="text-gray-300 leading-relaxed">
                 Crear tecnología robótica de alta calidad de forma accesible, eficiente y abierta, demostrando que desde Argentina se puede desarrollar hardware de nivel competitivo internacional.
               </p>
             </div>
             <div className="p-6 bg-gray-800 border border-gray-700 rounded-lg">
-              <h3 className="text-2xl font-bold mb-4 text-cyan-300">🔭 Visión</h3>
+              <h3 className="text-2xl font-bold mb-4 text-cyan-300">Visión</h3>
               <p className="text-gray-300 leading-relaxed">
                 Convertirse en una de las marcas de robótica más reconocidas de Latinoamérica, impulsando nuevos competidores, proyectos y desarrolladores mediante robots, placas y comunidad.
               </p>
@@ -79,7 +79,7 @@ export default function QuienSomos() {
 
           {/* Logros */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold mb-8 text-cyan-300">🏆 Logros principales</h2>
+            <h2 className="text-3xl font-bold mb-8 text-cyan-300">Logros principales</h2>
             <div className="grid md:grid-cols-4 gap-4 mb-8">
               {logros.map((l, i) => (
                 <div key={i} className="p-6 bg-gray-800 border border-gray-700 rounded-lg text-center">
@@ -103,7 +103,7 @@ export default function QuienSomos() {
 
           {/* Robots */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold mb-6 text-cyan-300">🤖 Robots desarrollados</h2>
+            <h2 className="text-3xl font-bold mb-6 text-cyan-300">Robots desarrollados</h2>
             <div className="bg-gray-800 p-8 border border-gray-700 rounded-lg">
               <div className="grid md:grid-cols-3 gap-4">
                 {robots.map((robot, i) => (
@@ -117,7 +117,7 @@ export default function QuienSomos() {
 
           {/* Hardware */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold mb-6 text-cyan-300">🔌 Hardware diseñado por XpriT</h2>
+            <h2 className="text-3xl font-bold mb-6 text-cyan-300">Hardware diseñado por XpriT</h2>
             <div className="space-y-4">
               {placas.map((placa, i) => (
                 <div key={i} className="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-cyan-500 transition-colors">
@@ -133,7 +133,7 @@ export default function QuienSomos() {
 
           {/* Equipo */}
           <section className="mb-16">
-            <h2 className="text-3xl font-bold mb-6 text-cyan-300">👥 Equipo</h2>
+            <h2 className="text-3xl font-bold mb-6 text-cyan-300">Equipo</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {team.map((member, i) => (
                 <div key={i} className="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-cyan-500 transition-colors">
@@ -148,7 +148,7 @@ export default function QuienSomos() {
 
           {/* Ubicación */}
           <section className="mb-16 p-8 bg-gray-800 border border-gray-700 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4 text-cyan-300">📍 Ubicación</h2>
+            <h2 className="text-2xl font-bold mb-4 text-cyan-300">Ubicación</h2>
             <p className="text-gray-300 mb-4">
               <strong>Misiones, Argentina</strong>
             </p>
@@ -162,22 +162,22 @@ export default function QuienSomos() {
 
           {/* Qué hacemos */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-6 text-cyan-300">💡 Qué hacemos</h2>
+            <h2 className="text-3xl font-bold mb-6 text-cyan-300">Qué hacemos</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="p-4 bg-gray-800 border border-gray-700 rounded">
-                <p className="text-cyan-300 font-semibold mb-2">🤖 Desarrollo de robots autónomos</p>
+                <p className="text-cyan-300 font-semibold mb-2">Desarrollo de robots autónomos</p>
                 <p className="text-gray-400 text-sm">Para competencias de alto rendimiento</p>
               </div>
               <div className="p-4 bg-gray-800 border border-gray-700 rounded">
-                <p className="text-cyan-300 font-semibold mb-2">🔌 Fabricación de placas electrónicas</p>
+                <p className="text-cyan-300 font-semibold mb-2">Fabricación de placas electrónicas</p>
                 <p className="text-gray-400 text-sm">Para robótica competitiva</p>
               </div>
               <div className="p-4 bg-gray-800 border border-gray-700 rounded">
-                <p className="text-cyan-300 font-semibold mb-2">🧠 Investigación y experimentación</p>
+                <p className="text-cyan-300 font-semibold mb-2">Investigación y experimentación</p>
                 <p className="text-gray-400 text-sm">IA, visión y sensores avanzados</p>
               </div>
               <div className="p-4 bg-gray-800 border border-gray-700 rounded">
-                <p className="text-cyan-300 font-semibold mb-2">📚 Difusión y formación</p>
+                <p className="text-cyan-300 font-semibold mb-2">Difusión y formación</p>
                 <p className="text-gray-400 text-sm">A nivel local y online</p>
               </div>
             </div>
