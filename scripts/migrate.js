@@ -12,7 +12,7 @@ if (!process.env.DATABASE_URL) {
 console.log('📦 Running Prisma schema push...');
 
 try {
-  execSync('npx prisma db push --skip-generate --skip-seed', {
+  execSync('npx prisma db push --skip-generate', {
     stdio: 'inherit',
     cwd: process.cwd(),
   });
