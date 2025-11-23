@@ -50,7 +50,41 @@ export default function AdminMenu() {
 
     setToken(savedToken);
     setUsername(savedUsername);
-    fetchRobots(savedToken);
+    
+    // Fetch robots
+    const fetch_robots = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        const response = await fetch('/api/robots/pending', {
+          headers: {
+            Authorization: `Bearer ${savedToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Robots fetched:', data);
+        
+        if (data.data) {
+          setRobots(data.data);
+        } else {
+          setRobots([]);
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError(err instanceof Error ? err.message : 'Error loading robots');
+        setRobots([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetch_robots();
   }, [router]);
 
   const fetchRobots = async (authToken: string) => {
