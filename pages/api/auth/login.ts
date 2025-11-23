@@ -49,6 +49,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     { expiresIn: '30d' }
   );
 
-  res.status(200).json({ token, username });
+  res.status(200).json({ token, username, isAdmin: user.isAdmin || false });
 }
 

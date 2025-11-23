@@ -32,9 +32,10 @@ export default function TeamLogin() {
       // Guardar token en localStorage
       localStorage.setItem('team_token', data.token);
       localStorage.setItem('team_username', data.username);
+      localStorage.setItem('team_isAdmin', data.isAdmin ? 'true' : 'false');
 
       // Redirigir basado en el rol
-      if (data.username === 'fran') {
+      if (data.isAdmin) {
         router.push('/admin-menu');
       } else {
         router.push('/member-menu');
