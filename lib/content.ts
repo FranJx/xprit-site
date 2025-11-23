@@ -64,28 +64,41 @@ export function getRobotBySlug(slug: string): RobotData | null {
   if (!fs.existsSync(robotDir)) return null
   
   const metadataPath = path.join(robotDir, 'metadata.json')
-  const specsPath = path.join(robotDir, 'especificaciones.json')
   
-  if (!fs.existsSync(metadataPath) || !fs.existsSync(specsPath)) return null
+  if (!fs.existsSync(metadataPath)) return null
   
   const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
-  const specs = JSON.parse(fs.readFileSync(specsPath, 'utf-8'))
   
-  // Cargar galería de imágenes desde public/content/robots/[slug]/
-  const publicGalleryDir = path.join(process.cwd(), 'public', 'content', 'robots', slug)
+  // Intenta leer specs del metadata.json (nuevo formato)
+  // Si no existen, intenta leer de especificaciones.json (formato antiguo)
+  let specs = metadata.specs || []
+  if (!specs || specs.length === 0) {
+    const specsPath = path.join(robotDir, 'especificaciones.json')
+    if (fs.existsSync(specsPath)) {
+      try {
+        const specsFile = JSON.parse(fs.readFileSync(specsPath, 'utf-8'))
+        specs = specsFile || []
+      } catch {
+        specs = []
+      }
+    }
+  }
+  
+  // Cargar galería de imágenes desde content/robots/[slug]/images/
+  const imagesDir = path.join(robotDir, 'images')
   let gallery: string[] = []
   
-  if (fs.existsSync(publicGalleryDir)) {
-    const files = fs.readdirSync(publicGalleryDir)
+  if (fs.existsSync(imagesDir)) {
+    const files = fs.readdirSync(imagesDir)
     gallery = files
       .filter(file => /\.(png|jpg|jpeg|webp)$/i.test(file))
-      .map(file => file)
+      .map(file => `images/${file}`)
       .sort()
   }
   
   return {
     ...metadata,
-    specs: specs || [],
+    specs: Array.isArray(specs) ? specs : [],
     fullDescription: metadata.fullDescription || '',
     gallery: gallery,
   }

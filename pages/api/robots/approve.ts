@@ -90,13 +90,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Create metadata.json
+    const specs = [
+      robot.battery && { label: 'Batería', value: robot.battery },
+      robot.motors && { label: 'Motores', value: robot.motors },
+    ].filter(Boolean);
+
+    const mainImagePath = mainImageFilename ? `/images/${mainImageFilename}` : '/images/default.jpg';
+
     const metadata = {
       slug,
       name: robot.name,
       category: robot.category,
       year: robot.yearCreated,
       description: robot.description || '',
-      mainImage: `/images/${mainImageFilename || 'main.jpg'}`,
+      mainImage: mainImagePath,
+      specs: specs,
       features: [
         robot.battery && `Batería: ${robot.battery}`,
         robot.motors && `Motores: ${robot.motors}`,
@@ -136,7 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ message: 'Invalid token' });
     }
 
-    console.error('Approval error:', error);
+    console.error('❌ Approval error:', error);
     
     // Si es error de Prisma (DB), devolver error amigable
     if (error instanceof Error && (error.message.includes('Prisma') || error.message.includes('P'))) {
@@ -146,9 +154,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('Full error message:', errorMsg);
+
     return res.status(500).json({ 
-      message: 'Error approving robot',
-      error: process.env.NODE_ENV === 'development' ? String(error) : undefined
+      message: 'Error approving robot: ' + errorMsg,
+      error: process.env.NODE_ENV === 'development' ? errorMsg : undefined
     });
   }
 }
