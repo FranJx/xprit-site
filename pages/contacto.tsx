@@ -113,8 +113,8 @@ export default function Contacto() {
               <div className="space-y-8">
                 <div className="p-6 bg-gray-800 border border-gray-700 rounded-lg">
                   <h3 className="font-semibold text-cyan-300 mb-2">Email</h3>
-                  <a href="mailto:info@xprit.com" className="text-gray-300 hover:text-cyan-400 transition-colors">
-                    info@xprit.com
+                  <a href="mailto:info@xprit-robotics.com" className="text-gray-300 hover:text-cyan-400 transition-colors">
+                    info@xprit-robotics.com
                   </a>
                 </div>
 

@@ -35,7 +35,7 @@ export default function Footer() {
           <div>
             <h5 className="font-semibold text-gray-300 mb-4">📧 Contacto</h5>
             <ul className="space-y-2 text-gray-400 text-sm">
-              <li><a href="mailto:contacto@xprit-robotics.com" className="text-cyan-400 hover:text-cyan-300">contacto@xprit-robotics.com</a></li>
+              <li><a href="mailto:info@xprit-robotics.com" className="text-cyan-400 hover:text-cyan-300">info@xprit-robotics.com</a></li>
               <li><Link href="/contacto" className="text-cyan-400 hover:text-cyan-300">→ Envía un mensaje</Link></li>
             </ul>
           </div>
