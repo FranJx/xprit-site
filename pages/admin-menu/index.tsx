@@ -53,22 +53,27 @@ export default function AdminMenu() {
     
     // Fetch robots
     const fetch_robots = async () => {
+      console.log('🔄 Starting fetch_robots...');
       try {
+        console.log('📌 Setting loading to true');
         setLoading(true);
         setError('');
         
+        console.log('📡 Fetching /api/robots/pending');
         const response = await fetch('/api/robots/pending', {
           headers: {
             Authorization: `Bearer ${savedToken}`,
           },
         });
 
+        console.log('✅ Got response:', response.status);
         if (!response.ok) {
           throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('Robots fetched:', data);
+        console.log('✅ Robots fetched:', data);
+        console.log('📊 Setting robots with', data.data?.length || 0, 'items');
         
         if (data.data) {
           setRobots(data.data);
@@ -76,10 +81,11 @@ export default function AdminMenu() {
           setRobots([]);
         }
       } catch (err) {
-        console.error('Fetch error:', err);
+        console.error('❌ Fetch error:', err);
         setError(err instanceof Error ? err.message : 'Error loading robots');
         setRobots([]);
       } finally {
+        console.log('🏁 Setting loading to false');
         setLoading(false);
       }
     };
