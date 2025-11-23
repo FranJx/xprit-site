@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -8,6 +8,13 @@ export default function TeamLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Limpiar localStorage al cargar la página (asegurar que tokens viejos no causen problemas)
+  useEffect(() => {
+    localStorage.removeItem('team_token');
+    localStorage.removeItem('team_username');
+    localStorage.removeItem('team_isAdmin');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
