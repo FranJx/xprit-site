@@ -80,18 +80,18 @@ export default function AdminMenu() {
         } else {
           setRobots([]);
         }
+        console.log('🏁 Setting loading to false');
+        setLoading(false);
       } catch (err) {
         console.error('❌ Fetch error:', err);
         setError(err instanceof Error ? err.message : 'Error loading robots');
         setRobots([]);
-      } finally {
-        console.log('🏁 Setting loading to false');
         setLoading(false);
       }
     };
     
     fetch_robots();
-  }, [router]);
+  }, []);
 
   const fetchRobots = async (authToken: string) => {
     try {
