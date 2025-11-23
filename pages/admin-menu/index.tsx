@@ -2,323 +2,215 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
-interface RobotSubmission {
+interface Robot {
   id: string;
   name: string;
   slug: string;
-  battery: string;
+  battery?: string;
   category: string;
-  motors: string;
+  motors?: string;
   yearCreated: number;
-  description: string;
-  mainImage: string;
+  description?: string;
+  mainImage?: string;
   photos: string[];
   status: string;
-  comments: string | null;
+  comments?: string;
   submittedBy: string;
   submittedAt: string;
 }
 
 export default function AdminMenu() {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [robots, setRobots] = useState<RobotSubmission[]>([]);
+  const [robots, setRobots] = useState<Robot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRobot, setSelectedRobot] = useState<RobotSubmission | null>(null);
-  const [approving, setApproving] = useState(false);
-  const [rejecting, setRejecting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedRobot, setSelectedRobot] = useState<Robot | null>(null);
   const [comments, setComments] = useState('');
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
 
+  // Cargar robots al montar el componente
   useEffect(() => {
-    const savedToken = localStorage.getItem('team_token');
-    const savedUsername = localStorage.getItem('team_username');
-    const savedIsAdmin = localStorage.getItem('team_isAdmin');
+    const init = async () => {
+      const token = localStorage.getItem('team_token');
+      const isAdmin = localStorage.getItem('team_isAdmin');
 
-    console.log('🔐 Auth check:', { savedIsAdmin, hasToken: !!savedToken });
+      // Verificar autenticación
+      if (!token || isAdmin !== 'true') {
+        router.push('/team/login');
+        return;
+      }
 
-    if (!savedToken || !savedUsername) {
-      console.log('❌ No token, redirecting to login');
-      router.push('/team/login');
-      return;
-    }
-
-    // Only admin can access
-    if (savedIsAdmin !== 'true') {
-      console.log('❌ Not admin, redirecting to member-menu');
-      router.push('/member-menu');
-      return;
-    }
-
-    console.log('✅ Auth OK, setting state');
-    setToken(savedToken);
-    setUsername(savedUsername);
-    
-    // Fetch robots
-    const fetch_robots = async () => {
-      console.log('🔄 Starting fetch_robots...');
+      // Cargar robots
       try {
-        console.log('📌 Setting loading to true');
-        setLoading(true);
-        setError('');
-        
-        console.log('📡 Fetching /api/robots/pending');
-        const response = await fetch('/api/robots/pending', {
-          headers: {
-            Authorization: `Bearer ${savedToken}`,
-          },
+        const res = await fetch('/api/robots/pending', {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log('✅ Got response:', response.status);
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ Robots fetched:', data);
-        console.log('📊 Setting robots with', data.data?.length || 0, 'items');
+        if (!res.ok) throw new Error(`Error: ${res.status}`);
         
+        const data = await res.json();
         setRobots(data.data || []);
-        console.log('🏁 Setting loading to false');
         setLoading(false);
       } catch (err) {
-        console.error('❌ Fetch error:', err);
-        setError(err instanceof Error ? err.message : 'Error loading robots');
-        setRobots([]);
+        setError(err instanceof Error ? err.message : 'Error cargando robots');
         setLoading(false);
       }
     };
-    
-    fetch_robots();
-  }, []);
 
-  const fetchRobots = async (authToken: string) => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      const response = await fetch('/api/robots/pending', {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('Robots fetched:', data);
-      
-      if (data.data) {
-        setRobots(data.data);
-      } else {
-        setRobots([]);
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Error loading robots');
-      setRobots([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('team_token');
-    localStorage.removeItem('team_username');
-    router.push('/team/login');
-  };
+    init();
+  }, [router]);
 
   const handleApprove = async () => {
-    if (!selectedRobot || !token) return;
+    if (!selectedRobot) return;
 
     setApproving(true);
-    setError('');
-    setSuccess('');
+    const token = localStorage.getItem('team_token');
 
     try {
-      const response = await fetch('/api/robots/approve', {
+      const res = await fetch('/api/robots/approve', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          robotId: selectedRobot.id,
-          comments,
-        }),
+        body: JSON.stringify({ robotId: selectedRobot.id, comments }),
       });
 
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Error approving robot');
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message);
       }
 
-      setSuccess('✓ Robot aprobado exitosamente');
+      setSuccess('✓ Robot aprobado');
       setSelectedRobot(null);
       setComments('');
 
-      // Refresh list
       setTimeout(() => {
-        if (token) fetchRobots(token);
+        setSuccess('');
+        // Recargar lista
+        window.location.reload();
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setError(err instanceof Error ? err.message : 'Error aprobando robot');
     } finally {
       setApproving(false);
     }
   };
 
   const handleReject = async () => {
-    if (!selectedRobot || !token) return;
+    if (!selectedRobot) return;
 
     setRejecting(true);
-    setError('');
-    setSuccess('');
+    const token = localStorage.getItem('team_token');
 
     try {
-      const response = await fetch('/api/robots/reject', {
+      const res = await fetch('/api/robots/reject', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          robotId: selectedRobot.id,
-          comments,
-        }),
+        body: JSON.stringify({ robotId: selectedRobot.id, comments }),
       });
 
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Error rejecting robot');
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message);
       }
 
       setSuccess('✓ Robot rechazado');
       setSelectedRobot(null);
       setComments('');
 
-      // Refresh list
       setTimeout(() => {
-        if (token) fetchRobots(token);
+        setSuccess('');
+        window.location.reload();
       }, 1500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setError(err instanceof Error ? err.message : 'Error rechazando robot');
     } finally {
       setRejecting(false);
     }
   };
 
-  const pendingRobots = robots.filter(r => r.status === 'pending');
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push('/team/login');
+  };
 
-  if (!token || username !== 'fran') {
-    return <div className="min-h-screen bg-gray-900 flex items-center justify-center">Cargando...</div>;
-  }
+  const pendingRobots = robots.filter(r => r.status === 'pending');
 
   return (
     <>
       <Head>
-        <title>Panel de Admin - XPRIT Robotics</title>
-        <meta name="robots" content="noindex, nofollow" />
+        <title>Panel Admin - XPRIT Robotics</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gray-900 py-8 px-4">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Panel de Administrador</h1>
-              <p className="text-gray-400 mt-1">Revisar y aprobar envíos de robots</p>
-            </div>
+            <h1 className="text-3xl font-bold text-white">Panel de Administrador</h1>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
             >
               Salir
             </button>
           </div>
 
           {/* Messages */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-900 border border-red-600 text-red-200 rounded-lg">
-              ✕ {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-6 p-4 bg-green-900 border border-green-600 text-green-200 rounded-lg">
-              {success}
-            </div>
-          )}
+          {error && <div className="mb-4 p-4 bg-red-900 text-red-200 rounded">{error}</div>}
+          {success && <div className="mb-4 p-4 bg-green-900 text-green-200 rounded">{success}</div>}
 
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-gray-400">Cargando robots...</p>
-              <p className="text-gray-500 text-sm mt-2">(Loading: {loading.toString()}, Robots: {robots.length})</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Lista de robots pendientes */}
-              <div className="lg:col-span-1">
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h2 className="text-xl font-bold text-white mb-4">
-                    Robots Pendientes ({pendingRobots.length})
-                  </h2>
+          {/* Loading */}
+          {loading && <div className="text-center py-12 text-gray-400">Cargando...</div>}
 
-                  {pendingRobots.length === 0 ? (
-                    <p className="text-gray-400 text-sm">No hay robots pendientes</p>
-                  ) : (
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                      {pendingRobots.map(robot => (
-                        <button
-                          key={robot.id}
-                          onClick={() => {
-                            setSelectedRobot(robot);
-                            setComments('');
-                          }}
-                          className={`w-full text-left p-3 rounded transition ${
-                            selectedRobot?.id === robot.id
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                          }`}
-                        >
-                          <div className="font-medium truncate">{robot.name}</div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            Por: {robot.submittedBy}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {new Date(robot.submittedAt).toLocaleDateString('es-AR')}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+          {/* Content */}
+          {!loading && (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Robot List */}
+              <div className="lg:col-span-1 bg-gray-800 rounded-lg p-4">
+                <h2 className="text-lg font-bold text-white mb-4">Pendientes ({pendingRobots.length})</h2>
+                {pendingRobots.length === 0 ? (
+                  <p className="text-gray-400 text-sm">Sin robots pendientes</p>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {pendingRobots.map(r => (
+                      <button
+                        key={r.id}
+                        onClick={() => setSelectedRobot(r)}
+                        className={`w-full text-left p-2 rounded text-sm ${
+                          selectedRobot?.id === r.id
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                        }`}
+                      >
+                        <div className="font-semibold truncate">{r.name}</div>
+                        <div className="text-xs opacity-75">{r.category}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Detalles del robot */}
-              <div className="lg:col-span-2">
+              {/* Robot Details */}
+              <div className="lg:col-span-3 bg-gray-800 rounded-lg p-6">
                 {selectedRobot ? (
-                  <div className="bg-gray-800 rounded-lg p-6">
-                    {/* Imagen principal */}
+                  <>
+                    <h2 className="text-2xl font-bold text-white mb-4">{selectedRobot.name}</h2>
+
                     {selectedRobot.mainImage && (
-                      <div className="mb-6">
-                        <img
-                          src={selectedRobot.mainImage}
-                          alt={selectedRobot.name}
-                          className="w-full h-64 object-cover rounded-lg border border-gray-600"
-                        />
-                      </div>
+                      <img
+                        src={selectedRobot.mainImage}
+                        alt={selectedRobot.name}
+                        className="w-full h-48 object-cover rounded-lg mb-4"
+                      />
                     )}
 
-                    {/* Información */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <p className="text-gray-400 text-sm">Nombre</p>
-                        <p className="text-white font-semibold">{selectedRobot.name}</p>
-                      </div>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
                         <p className="text-gray-400 text-sm">Categoría</p>
                         <p className="text-white font-semibold">{selectedRobot.category}</p>
@@ -327,92 +219,54 @@ export default function AdminMenu() {
                         <p className="text-gray-400 text-sm">Año</p>
                         <p className="text-white font-semibold">{selectedRobot.yearCreated}</p>
                       </div>
-                      <div>
-                        <p className="text-gray-400 text-sm">Batería</p>
-                        <p className="text-white font-semibold">{selectedRobot.battery || '-'}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 text-sm">Motores</p>
-                        <p className="text-white font-semibold">{selectedRobot.motors || '-'}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 text-sm">Enviado por</p>
-                        <p className="text-white font-semibold">{selectedRobot.submittedBy}</p>
-                      </div>
-                    </div>
-
-                    {/* Descripción */}
-                    {selectedRobot.description && (
-                      <div className="mb-6">
-                        <p className="text-gray-400 text-sm mb-2">Descripción</p>
-                        <p className="text-white bg-gray-700 p-3 rounded text-sm">
-                          {selectedRobot.description}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Fotos */}
-                    {selectedRobot.photos && selectedRobot.photos.length > 0 && (
-                      <div className="mb-6">
-                        <p className="text-gray-400 text-sm mb-2">Fotos Adicionales</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {selectedRobot.photos.map((photo, idx) => (
-                            <img
-                              key={idx}
-                              src={photo}
-                              alt={`Foto ${idx + 1}`}
-                              className="w-full h-24 object-cover rounded border border-gray-600 cursor-pointer hover:opacity-75"
-                              onClick={() => window.open(photo, '_blank')}
-                            />
-                          ))}
+                      {selectedRobot.battery && (
+                        <div>
+                          <p className="text-gray-400 text-sm">Batería</p>
+                          <p className="text-white">{selectedRobot.battery}</p>
                         </div>
+                      )}
+                      {selectedRobot.motors && (
+                        <div>
+                          <p className="text-gray-400 text-sm">Motores</p>
+                          <p className="text-white">{selectedRobot.motors}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedRobot.description && (
+                      <div className="mb-4">
+                        <p className="text-gray-400 text-sm">Descripción</p>
+                        <p className="text-white bg-gray-700 p-2 rounded text-sm">{selectedRobot.description}</p>
                       </div>
                     )}
 
-                    {/* Comentarios */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-200 mb-2">
-                        Comentarios (opcional)
-                      </label>
-                      <textarea
-                        value={comments}
-                        onChange={(e) => setComments(e.target.value)}
-                        placeholder="Agrega comentarios para el equipo..."
-                        rows={3}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+                    <textarea
+                      value={comments}
+                      onChange={e => setComments(e.target.value)}
+                      placeholder="Comentarios..."
+                      className="w-full bg-gray-700 text-white rounded p-2 mb-4 text-sm"
+                      rows={3}
+                    />
 
-                    {/* Botones */}
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <button
                         onClick={handleApprove}
                         disabled={approving}
-                        className={`flex-1 py-2 rounded font-medium transition ${
-                          approving
-                            ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                            : 'bg-green-600 text-white hover:bg-green-700'
-                        }`}
+                        className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-2 rounded"
                       >
-                        {approving ? 'Aprobando...' : '✓ Aprobar'}
+                        {approving ? 'Aprobando...' : 'Aprobar'}
                       </button>
                       <button
                         onClick={handleReject}
                         disabled={rejecting}
-                        className={`flex-1 py-2 rounded font-medium transition ${
-                          rejecting
-                            ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                            : 'bg-red-600 text-white hover:bg-red-700'
-                        }`}
+                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white py-2 rounded"
                       >
-                        {rejecting ? 'Rechazando...' : '✕ Rechazar'}
+                        {rejecting ? 'Rechazando...' : 'Rechazar'}
                       </button>
                     </div>
-                  </div>
+                  </>
                 ) : (
-                  <div className="bg-gray-800 rounded-lg p-6 text-center">
-                    <p className="text-gray-400">Selecciona un robot para ver los detalles</p>
-                  </div>
+                  <p className="text-gray-400 text-center py-12">Selecciona un robot</p>
                 )}
               </div>
             </div>
