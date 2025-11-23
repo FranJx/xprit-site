@@ -37,17 +37,22 @@ export default function AdminMenu() {
     const savedUsername = localStorage.getItem('team_username');
     const savedIsAdmin = localStorage.getItem('team_isAdmin');
 
+    console.log('🔐 Auth check:', { savedIsAdmin, hasToken: !!savedToken });
+
     if (!savedToken || !savedUsername) {
+      console.log('❌ No token, redirecting to login');
       router.push('/team/login');
       return;
     }
 
     // Only admin can access
     if (savedIsAdmin !== 'true') {
+      console.log('❌ Not admin, redirecting to member-menu');
       router.push('/member-menu');
       return;
     }
 
+    console.log('✅ Auth OK, setting state');
     setToken(savedToken);
     setUsername(savedUsername);
     
@@ -75,11 +80,7 @@ export default function AdminMenu() {
         console.log('✅ Robots fetched:', data);
         console.log('📊 Setting robots with', data.data?.length || 0, 'items');
         
-        if (data.data) {
-          setRobots(data.data);
-        } else {
-          setRobots([]);
-        }
+        setRobots(data.data || []);
         console.log('🏁 Setting loading to false');
         setLoading(false);
       } catch (err) {
