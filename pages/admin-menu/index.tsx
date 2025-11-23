@@ -56,18 +56,30 @@ export default function AdminMenu() {
   const fetchRobots = async (authToken: string) => {
     try {
       setLoading(true);
+      setError('');
+      
       const response = await fetch('/api/robots/pending', {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
       });
 
-      if (!response.ok) throw new Error('Error fetching robots');
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
 
       const data = await response.json();
-      setRobots(data.data || []);
+      console.log('Robots fetched:', data);
+      
+      if (data.data) {
+        setRobots(data.data);
+      } else {
+        setRobots([]);
+      }
     } catch (err) {
+      console.error('Fetch error:', err);
       setError(err instanceof Error ? err.message : 'Error loading robots');
+      setRobots([]);
     } finally {
       setLoading(false);
     }
