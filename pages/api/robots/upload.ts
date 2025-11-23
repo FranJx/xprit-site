@@ -60,21 +60,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const submissionsDir = path.join(process.cwd(), 'public/content/robots/submissions');
       
       // Create directory if it doesn't exist
-      await mkdir(submissionsDir, { recursive: true });
+      try {
+        await mkdir(submissionsDir, { recursive: true });
+        console.log(`✓ Submissions dir created/verified: ${submissionsDir}`);
+      } catch (mkdirError) {
+        console.error('❌ Failed to create submissions directory:', mkdirError);
+      }
 
       const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
 
       for (const file of imageFiles) {
-        const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.originalFilename}`;
-        const filepath = path.join(submissionsDir, filename);
-        
-        // Copy file from temp location to permanent location
-        const fileContent = fs.readFileSync(file.filepath);
-        await writeFile(filepath, fileContent);
-        
-        // Store path that works in Next.js (public prefix not needed for browser)
-        imageUrls.push(`/content/robots/submissions/${filename}`);
-        console.log(`✓ Image saved: ${filepath}`);
+        try {
+          const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.originalFilename}`;
+          const filepath = path.join(submissionsDir, filename);
+          
+          // Copy file from temp location to permanent location
+          const fileContent = fs.readFileSync(file.filepath);
+          await writeFile(filepath, fileContent);
+          
+          // Verify file was written
+          if (fs.existsSync(filepath)) {
+            const stats = fs.statSync(filepath);
+            console.log(`✓ Image saved: ${filepath} (${stats.size} bytes)`);
+            // Store path that works in Next.js (public prefix not needed for browser)
+            imageUrls.push(`/content/robots/submissions/${filename}`);
+          } else {
+            console.error(`❌ File not found after write: ${filepath}`);
+          }
+        } catch (fileError) {
+          console.error(`❌ Failed to save image ${file.originalFilename}:`, fileError);
+        }
       }
     }
 
