@@ -233,12 +233,20 @@ export default function UploadRobot() {
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Selecciona una categoría</option>
-                <option value="hunter">Hunter</option>
-                <option value="predator">Predator</option>
-                <option value="seul">SEUL</option>
-                <option value="thunder">Thunder</option>
-                <option value="tokio">Tokio</option>
-                <option value="otro">Otro</option>
+                <option value="Minisumo Pro Autonomo">Minisumo Pro Autonomo</option>
+                <option value="Minisumo Amateur Autonomo">Minisumo Amateur Autonomo</option>
+                <option value="Minisumo Pro RC">Minisumo Pro RC</option>
+                <option value="Minisumo Amateur RC">Minisumo Amateur RC</option>
+                <option value="Sumo Pro Autonomo">Sumo Pro Autonomo</option>
+                <option value="Sumo Amateur Autonomo">Sumo Amateur Autonomo</option>
+                <option value="Sumo Pro RC">Sumo Pro RC</option>
+                <option value="Sumo Amateur RC">Sumo Amateur RC</option>
+                <option value="Seguidor de Lineas Pro">Seguidor de Lineas Pro</option>
+                <option value="Seguidor de lineas Amateur">Seguidor de lineas Amateur</option>
+                <option value="Microsumo">Microsumo</option>
+                <option value="Futbol Pro">Futbol Pro</option>
+                <option value="Futbol Amateur">Futbol Amateur</option>
+                <option value="Laberinto">Laberinto</option>
               </select>
             </div>
 
