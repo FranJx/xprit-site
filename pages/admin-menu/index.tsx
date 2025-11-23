@@ -249,6 +249,7 @@ export default function AdminMenu() {
           {loading ? (
             <div className="text-center py-12">
               <p className="text-gray-400">Cargando robots...</p>
+              <p className="text-gray-500 text-sm mt-2">(Loading: {loading.toString()}, Robots: {robots.length})</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
