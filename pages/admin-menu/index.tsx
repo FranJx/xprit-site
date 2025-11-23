@@ -29,6 +29,7 @@ export default function AdminMenu() {
   const [comments, setComments] = useState('');
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Cargar robots al montar el componente
   useEffect(() => {
@@ -181,7 +182,10 @@ export default function AdminMenu() {
                     {pendingRobots.map(r => (
                       <button
                         key={r.id}
-                        onClick={() => setSelectedRobot(r)}
+                        onClick={() => {
+                          setSelectedRobot(r);
+                          setImageError(false);
+                        }}
                         className={`w-full text-left p-2 rounded text-sm ${
                           selectedRobot?.id === r.id
                             ? 'bg-blue-600 text-white'
@@ -203,11 +207,27 @@ export default function AdminMenu() {
                     <h2 className="text-2xl font-bold text-white mb-4">{selectedRobot.name}</h2>
 
                     {selectedRobot.mainImage && (
-                      <img
-                        src={selectedRobot.mainImage}
-                        alt={selectedRobot.name}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
-                      />
+                      <div className="mb-4 bg-gray-700 rounded-lg p-4">
+                        <div className="w-full h-48 bg-gray-900 rounded overflow-hidden flex items-center justify-center">
+                          {imageError ? (
+                            <div className="text-center">
+                              <p className="text-gray-400 text-sm">Error cargando imagen</p>
+                              <p className="text-gray-500 text-xs mt-2">{selectedRobot.mainImage}</p>
+                            </div>
+                          ) : (
+                            <img
+                              src={selectedRobot.mainImage}
+                              alt={selectedRobot.name}
+                              className="w-full h-full object-contain"
+                              onError={() => {
+                                setImageError(true);
+                                console.error('Image load error:', selectedRobot.mainImage);
+                              }}
+                              onLoad={() => setImageError(false)}
+                            />
+                          )}
+                        </div>
+                      </div>
                     )}
 
                     <div className="grid grid-cols-2 gap-4 mb-4">

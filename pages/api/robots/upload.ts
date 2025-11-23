@@ -72,7 +72,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const fileContent = fs.readFileSync(file.filepath);
         await writeFile(filepath, fileContent);
         
+        // Store path that works in Next.js (public prefix not needed for browser)
         imageUrls.push(`/content/robots/submissions/${filename}`);
+        console.log(`✓ Image saved: ${filepath}`);
       }
     }
 
