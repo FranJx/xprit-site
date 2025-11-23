@@ -81,10 +81,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Create robot submission in database
+    // Generate slug from robot name
+    const slug = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+
     const newRobot = await prisma.robotSubmission.create({
       data: {
         name,
-        slug: '', // Will be generated on approval
+        slug: slug, // Set slug immediately
         battery: battery || null,
         category,
         motors: motors || null,
@@ -108,6 +116,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.error('Upload error:', error);
-    return res.status(500).json({ message: 'Error submitting robot' });
+    
+    // Si es error de Prisma (DB), devolver error amigable
+    if (error instanceof Error && (error.message.includes('Prisma') || error.message.includes('P'))) {
+      console.warn('⚠️ Database error during upload');
+      return res.status(503).json({ 
+        message: 'Database temporarily unavailable. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+
+    return res.status(500).json({ 
+      message: 'Error submitting robot',
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined
+    });
   }
 }
