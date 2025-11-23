@@ -37,12 +37,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: robots,
     });
   } catch (error) {
+    console.error('Fetch error:', error);
+    
     if (error instanceof jwt.JsonWebTokenError) {
       return res.status(401).json({ message: 'Invalid token' });
     }
 
-    console.error('Fetch error:', error);
-    return res.status(500).json({ message: 'Error fetching robots' });
+    // Si es error de conexión, devolver array vacío (útil para desarrollo sin DB)
+    if (error instanceof Error && error.message.includes('Can\'t reach database')) {
+      console.warn('⚠️ Database not accessible, returning empty list');
+      return res.status(200).json({
+        message: 'Robots fetched successfully (empty - DB not connected)',
+        data: [],
+      });
+    }
+
+    console.error('Full error:', error);
+    return res.status(500).json({ message: 'Error fetching robots', error: String(error) });
   } finally {
     // Prisma is managed globally
   }
