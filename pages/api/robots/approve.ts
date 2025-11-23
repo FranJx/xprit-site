@@ -137,6 +137,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.error('Approval error:', error);
-    return res.status(500).json({ message: 'Error approving robot' });
+    
+    // Si es error de Prisma (DB), devolver error amigable
+    if (error instanceof Error && (error.message.includes('Prisma') || error.message.includes('P'))) {
+      return res.status(503).json({ 
+        message: 'Database temporarily unavailable. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+
+    return res.status(500).json({ 
+      message: 'Error approving robot',
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined
+    });
   }
 }
