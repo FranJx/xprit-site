@@ -1,6 +1,15 @@
 node_modules/
 .next/
+.env
 .env.local
+.env.production
+.env.*.local
 .DS_Store
 npm-debug.log
 yarn-error.log
+
+# Uploads temporales (no commitar imágenes)
+public/content/robots/submissions/
+
+# Build
+dist/

@@ -1,0 +1,32 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RobotSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  battery   String?
+  category  String
+  motors    String?
+  yearCreated Int
+  description String? @db.Text
+  mainImage String?
+  photos    String[] // URLs de Cloudinary
+  
+  status    String   @default("pending") // pending, approved, rejected
+  comments  String?  @db.Text
+  submittedBy String
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
