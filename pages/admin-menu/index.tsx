@@ -35,14 +35,15 @@ export default function AdminMenu() {
   useEffect(() => {
     const savedToken = localStorage.getItem('team_token');
     const savedUsername = localStorage.getItem('team_username');
+    const savedIsAdmin = localStorage.getItem('team_isAdmin');
 
     if (!savedToken || !savedUsername) {
       router.push('/team/login');
       return;
     }
 
-    // Only admin (fran) can access
-    if (savedUsername !== 'fran') {
+    // Only admin can access
+    if (savedIsAdmin !== 'true') {
       router.push('/member-menu');
       return;
     }
