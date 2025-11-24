@@ -104,6 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       message: 'Robot approved successfully',
       slug: robot.slug,
+      revalidate: true,
     });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

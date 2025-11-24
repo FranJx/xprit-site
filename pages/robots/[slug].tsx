@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 export async function getStaticProps({ params }: { params: { slug: string } }) {
   const robot = await getRobotBySlugFromDB(params.slug)
   if (!robot) return { notFound: true }
-  return { props: { robot }, revalidate: 60 }
+  return { props: { robot }, revalidate: 10 } // Re-generar cada 10 segundos para reflejar cambios rápidamente
 }
 
 export default function RobotPage({ robot }: { robot: RobotData }) {

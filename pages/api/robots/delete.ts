@@ -76,6 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       message: 'Robot deleted successfully',
       slug,
+      revalidate: true,
     });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

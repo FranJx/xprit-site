@@ -16,7 +16,7 @@ export async function getStaticProps() {
   const robots = await getAllRobotsFromDB()
   return {
     props: { robots },
-    revalidate: 60, // Re-generar cada 60 segundos
+    revalidate: 10, // Re-generar cada 10 segundos para reflejar cambios rápidamente
   }
 }
 
