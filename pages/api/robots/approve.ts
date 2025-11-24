@@ -36,6 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Robot ID is required' });
     }
 
+    console.log(`🤖 Approving robot: ${robotId}`);
+
     // Get robot from database
     const robot = await prisma.robotSubmission.findUnique({
       where: { id: robotId },
@@ -45,51 +47,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: 'Robot not found' });
     }
 
-    // Generate slug from robot name
-    const slug = robot.name
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-');
+    console.log(`✓ Robot found: ${robot.name} (slug: ${robot.slug})`);
 
-    // Create robot directory in /content/robots/
-    const robotDir = path.join(process.cwd(), 'content/robots', slug);
+    // Create robot directory in /content/robots/ (different from /public/)
+    const robotDir = path.join(process.cwd(), 'content/robots', robot.slug);
+
+    console.log(`📁 Creating content directory: ${robotDir}`);
     await mkdir(robotDir, { recursive: true });
 
-    // Create images subdirectory
-    const imagesDir = path.join(robotDir, 'images');
-    await mkdir(imagesDir, { recursive: true });
-
-    // Copy images from submissions to robot directory
-    const mainImageFilename = robot.mainImage?.split('/').pop();
-    if (robot.mainImage && mainImageFilename) {
-      const sourceImagePath = path.join(process.cwd(), 'public', robot.mainImage);
-      const destImagePath = path.join(imagesDir, mainImageFilename);
-      
-      if (fs.existsSync(sourceImagePath)) {
-        const fileContent = fs.readFileSync(sourceImagePath);
-        await writeFile(destImagePath, fileContent);
-      }
-    }
-
-    // Copy additional photos
-    const photoFiles: string[] = [];
-    for (const photo of robot.photos) {
-      const photoFilename = photo.split('/').pop();
-      if (photoFilename) {
-        const sourcePhotoPath = path.join(process.cwd(), 'public', photo);
-        const destPhotoPath = path.join(imagesDir, photoFilename);
-        
-        if (fs.existsSync(sourcePhotoPath)) {
-          const fileContent = fs.readFileSync(sourcePhotoPath);
-          await writeFile(destPhotoPath, fileContent);
-          photoFiles.push(`/images/${photoFilename}`);
-        }
-      }
-    }
-
-    // Create metadata.json
+    // Create metadata.json with all specs
     const specs = [
       robot.category && { label: 'Categoría', value: robot.category },
       robot.mainBoard && { label: 'Placa electrónica', value: robot.mainBoard },
@@ -102,15 +68,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       robot.achievements && { label: 'Logros', value: robot.achievements },
     ].filter(Boolean);
 
-    const mainImagePath = mainImageFilename ? `/images/${mainImageFilename}` : '/images/default.jpg';
-
     const metadata = {
-      slug,
+      slug: robot.slug,
       name: robot.name,
       category: robot.category,
       year: robot.yearCreated,
       description: robot.description || '',
-      mainImage: mainImagePath,
+      mainImage: robot.mainImage || '/images/default.jpg',
       specs: specs,
       features: [
         robot.battery && `Batería: ${robot.battery}`,
@@ -121,52 +85,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const metadataPath = path.join(robotDir, 'metadata.json');
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
 
-    // Create especificaciones.json (empty specs for now)
-    const specsPath = path.join(robotDir, 'especificaciones.json');
-    await writeFile(specsPath, JSON.stringify({}, null, 2));
+    console.log(`✓ Metadata created: ${metadataPath}`);
 
-    // Update robot in database - mark as approved with slug
-    const updatedRobot = await prisma.robotSubmission.update({
-      where: { id: robotId },
-      data: {
-        status: 'approved',
-        slug,
-        comments: comments || '',
-        reviewedAt: new Date(),
-        reviewedBy: decoded.username,
-      },
-    });
+    // Create symlink or copy images from /public/content/robots/[slug] to /content/robots/[slug]
+    const publicRobotDir = path.join(process.cwd(), 'public/content/robots', robot.slug);
+    const publicImagesDir = path.join(publicRobotDir, 'images');
+    const contentImagesDir = path.join(robotDir, 'images');
 
-    // Delete robot from database to free space
+    console.log(`📸 Copying images from ${publicImagesDir} to ${contentImagesDir}`);
+
+    if (fs.existsSync(publicImagesDir)) {
+      await mkdir(contentImagesDir, { recursive: true });
+      const imageFiles = fs.readdirSync(publicImagesDir);
+      
+      for (const imageFile of imageFiles) {
+        const sourceFile = path.join(publicImagesDir, imageFile);
+        const destFile = path.join(contentImagesDir, imageFile);
+        const fileContent = fs.readFileSync(sourceFile);
+        await writeFile(destFile, fileContent);
+        console.log(`   ✓ Copied: ${imageFile}`);
+      }
+    }
+
+    // Delete robot submission from database
+    console.log(`🗑️ Deleting submission from database...`);
     await prisma.robotSubmission.delete({
       where: { id: robotId },
     });
 
     return res.status(200).json({
-      message: 'Robot approved and saved to repository',
-      data: updatedRobot,
+      message: 'Robot approved successfully',
+      slug: robot.slug,
     });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
+      console.error('❌ JWT Error:', error.message);
       return res.status(401).json({ message: 'Invalid token' });
     }
 
-    console.error('❌ Approval error:', error);
-    
-    // Si es error de Prisma (DB), devolver error amigable
-    if (error instanceof Error && (error.message.includes('Prisma') || error.message.includes('P'))) {
-      return res.status(503).json({ 
-        message: 'Database temporarily unavailable. Please try again later.',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
+    console.error('❌ Approve error:', error);
 
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('Full error message:', errorMsg);
-
-    return res.status(500).json({ 
-      message: 'Error approving robot: ' + errorMsg,
-      error: process.env.NODE_ENV === 'development' ? errorMsg : undefined
+    return res.status(500).json({
+      message: 'Error approving robot',
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined,
     });
   }
 }

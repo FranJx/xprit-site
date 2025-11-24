@@ -38,6 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       maxFileSize: 100 * 1024 * 1024, // 100MB
     });
 
+    console.log('📋 Parsing form data...');
     const [fields, files] = await form.parse(req);
 
     const name = Array.isArray(fields.name) ? fields.name[0] : fields.name;
@@ -56,55 +57,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Validate required fields
     if (!name || !category) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      console.error('❌ Missing required fields');
+      return res.status(400).json({ message: 'Missing required fields: name, category' });
     }
 
-    // Handle image uploads
-    const imageUrls: string[] = [];
-    
-    if (files.images) {
-      const submissionsDir = path.join(process.cwd(), 'public/content/robots/submissions');
-      
-      // Create directory if it doesn't exist
-      try {
-        await mkdir(submissionsDir, { recursive: true });
-        console.log(`✓ Submissions dir created/verified: ${submissionsDir}`);
-      } catch (mkdirError) {
-        console.error('❌ Failed to create submissions directory:', mkdirError);
-      }
-
-      const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
-
-      for (const file of imageFiles) {
-        try {
-          const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}-${file.originalFilename}`;
-          const filepath = path.join(submissionsDir, filename);
-          
-          // Copy file from temp location to permanent location
-          const fileContent = fs.readFileSync(file.filepath);
-          await writeFile(filepath, fileContent);
-          
-          // Verify file was written
-          if (fs.existsSync(filepath)) {
-            const stats = fs.statSync(filepath);
-            console.log(`✓ Image saved: ${filepath} (${stats.size} bytes)`);
-            // Store path that works in Next.js (public prefix not needed for browser)
-            imageUrls.push(`/content/robots/submissions/${filename}`);
-          } else {
-            console.error(`❌ File not found after write: ${filepath}`);
-          }
-        } catch (fileError) {
-          console.error(`❌ Failed to save image ${file.originalFilename}:`, fileError);
-        }
-      }
-    }
-
-    if (imageUrls.length === 0) {
+    if (!files.images) {
+      console.error('❌ No images uploaded');
       return res.status(400).json({ message: 'At least one image is required' });
     }
 
-    // Create robot submission in database
-    // Generate slug from robot name
+    // Generate slug
     const slug = name
       .toLowerCase()
       .trim()
@@ -112,10 +74,72 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-');
 
+    console.log(`📝 Robot slug: ${slug}`);
+
+    // Create directory structure in /public/content/robots/
+    const robotDir = path.join(process.cwd(), 'public/content/robots', slug);
+    const imagesDir = path.join(robotDir, 'images');
+
+    console.log(`📁 Creating directories...`);
+    console.log(`   - Robot dir: ${robotDir}`);
+    console.log(`   - Images dir: ${imagesDir}`);
+
+    try {
+      await mkdir(imagesDir, { recursive: true });
+      console.log(`✓ Directories created successfully`);
+    } catch (mkdirError) {
+      console.error('❌ Failed to create directories:', mkdirError);
+      return res.status(500).json({ message: 'Failed to create directories' });
+    }
+
+    // Save images
+    const imageUrls: string[] = [];
+    const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
+
+    console.log(`📸 Processing ${imageFiles.length} images...`);
+
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i];
+      try {
+        // Generate unique filename
+        const ext = path.extname(file.originalFilename || '.jpg');
+        const filename = `img-${i + 1}${ext}`;
+        const filepath = path.join(imagesDir, filename);
+
+        console.log(`   - Saving image ${i + 1}: ${filename}`);
+
+        // Read from temp location and write to final location
+        const fileContent = fs.readFileSync(file.filepath);
+        await writeFile(filepath, fileContent);
+
+        // Verify file exists
+        if (fs.existsSync(filepath)) {
+          const stats = fs.statSync(filepath);
+          console.log(`   ✓ Saved successfully (${stats.size} bytes)`);
+          // Store relative path from public
+          imageUrls.push(`/content/robots/${slug}/images/${filename}`);
+        } else {
+          console.error(`   ❌ File not found after save: ${filepath}`);
+        }
+      } catch (fileError) {
+        console.error(`   ❌ Error saving image:`, fileError);
+      }
+    }
+
+    if (imageUrls.length === 0) {
+      console.error('❌ No images were saved successfully');
+      return res.status(500).json({ message: 'Failed to save images' });
+    }
+
+    console.log(`✓ All images saved. URLs: ${imageUrls.join(', ')}`);
+
+    // Create robot submission in database
+    console.log(`💾 Creating database record...`);
+
     const newRobot = await prisma.robotSubmission.create({
       data: {
         name,
-        slug: slug, // Set slug immediately
+        slug,
         battery: battery || null,
         category,
         motors: motors || null,
@@ -135,29 +159,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    console.log(`✓ Robot submission created: ${newRobot.id}`);
+
     return res.status(201).json({
       message: 'Robot submitted successfully',
       data: newRobot,
     });
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
+      console.error('❌ JWT Error:', error.message);
       return res.status(401).json({ message: 'Invalid token' });
     }
 
-    console.error('Upload error:', error);
-    
-    // Si es error de Prisma (DB), devolver error amigable
-    if (error instanceof Error && (error.message.includes('Prisma') || error.message.includes('P'))) {
-      console.warn('⚠️ Database error during upload');
-      return res.status(503).json({ 
-        message: 'Database temporarily unavailable. Please try again later.',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
+    console.error('❌ Upload error:', error);
 
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: 'Error submitting robot',
-      error: process.env.NODE_ENV === 'development' ? String(error) : undefined
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined,
     });
   }
 }
