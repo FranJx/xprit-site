@@ -36,72 +36,99 @@ export interface NoticiaData extends NoticiasMetadata {
 }
 
 /**
- * Lee todos los robots APROBADOS desde la base de datos
+ * Lee todos los robots APROBADOS desde la base de datos con reintentos
  */
 export async function getAllRobotsFromDB(): Promise<RobotMetadata[]> {
-  try {
-    const robots = await prisma.robotSubmission.findMany({
-      where: { status: 'approved' },
-      orderBy: { submittedAt: 'desc' },
-    })
-    
-    return robots.map(r => ({
-      slug: r.slug,
-      name: r.name,
-      category: r.category || 'General',
-      year: r.yearCreated || new Date().getFullYear(),
-      description: r.description || '',
-      mainImage: r.mainImage || '/images/default.jpg',
-      features: r.sensors ? [r.sensors] : [],
-    }))
-  } catch (error) {
-    console.error('⚠️ Error reading robots from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
-    return []
+  const maxRetries = 3
+  let lastError: any = null
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 Attempting to fetch approved robots from DB (attempt ${attempt}/${maxRetries})...`)
+      const robots = await prisma.robotSubmission.findMany({
+        where: { status: 'approved' },
+        orderBy: { submittedAt: 'desc' },
+      })
+      
+      console.log(`✅ Successfully fetched ${robots.length} approved robots from DB`)
+      return robots.map(r => ({
+        slug: r.slug,
+        name: r.name,
+        category: r.category || 'General',
+        year: r.yearCreated || new Date().getFullYear(),
+        description: r.description || '',
+        mainImage: r.mainImage || '/images/default.jpg',
+        features: r.sensors ? [r.sensors] : [],
+      }))
+    } catch (error) {
+      lastError = error
+      console.error(`⚠️ Attempt ${attempt} failed:`, error instanceof Error ? error.message : String(error))
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      }
+    }
   }
+  
+  console.error('❌ Failed to fetch robots from DB after all retries:', lastError instanceof Error ? lastError.message : String(lastError))
+  return []
 }
 
 /**
- * Lee un robot APROBADO específico desde la base de datos
+ * Lee un robot APROBADO específico desde la base de datos con reintentos
  */
 export async function getRobotBySlugFromDB(slug: string): Promise<RobotData | null> {
-  try {
-    const robot = await prisma.robotSubmission.findUnique({
-      where: { slug },
-    })
-    
-    if (!robot || robot.status !== 'approved') {
-      return null
+  const maxRetries = 3
+  let lastError: any = null
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const robot = await prisma.robotSubmission.findUnique({
+        where: { slug },
+      })
+      
+      if (!robot || robot.status !== 'approved') {
+        return null
+      }
+      
+      // Construir specs desde los campos del robot
+      const specs: Array<{ label: string; value: string }> = []
+      
+      if (robot.category) specs.push({ label: 'Categoría', value: robot.category })
+      if (robot.mainBoard) specs.push({ label: 'Placa electrónica', value: robot.mainBoard })
+      if (robot.weight) specs.push({ label: 'Peso', value: robot.weight })
+      if (robot.dimensions) specs.push({ label: 'Dimensiones', value: robot.dimensions })
+      if (robot.maxSpeed) specs.push({ label: 'Velocidad máxima', value: robot.maxSpeed })
+      if (robot.sensors) specs.push({ label: 'Sensores', value: robot.sensors })
+      if (robot.battery) specs.push({ label: 'Batería', value: robot.battery })
+      if (robot.motors) specs.push({ label: 'Motores', value: robot.motors })
+      if (robot.achievements) specs.push({ label: 'Logros', value: robot.achievements })
+      
+      return {
+        slug: robot.slug,
+        name: robot.name,
+        category: robot.category || 'General',
+        year: robot.yearCreated || new Date().getFullYear(),
+        description: robot.description || '',
+        mainImage: robot.mainImage || '/images/default.jpg',
+        features: robot.sensors ? [robot.sensors] : [],
+        specs,
+        fullDescription: robot.description || '',
+        gallery: Array.isArray(robot.photos) ? robot.photos : [],
+      }
+    } catch (error) {
+      lastError = error
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      }
     }
-    
-    // Construir specs desde los campos del robot
-    const specs: Array<{ label: string; value: string }> = []
-    
-    if (robot.category) specs.push({ label: 'Categoría', value: robot.category })
-    if (robot.mainBoard) specs.push({ label: 'Placa electrónica', value: robot.mainBoard })
-    if (robot.weight) specs.push({ label: 'Peso', value: robot.weight })
-    if (robot.dimensions) specs.push({ label: 'Dimensiones', value: robot.dimensions })
-    if (robot.maxSpeed) specs.push({ label: 'Velocidad máxima', value: robot.maxSpeed })
-    if (robot.sensors) specs.push({ label: 'Sensores', value: robot.sensors })
-    if (robot.battery) specs.push({ label: 'Batería', value: robot.battery })
-    if (robot.motors) specs.push({ label: 'Motores', value: robot.motors })
-    if (robot.achievements) specs.push({ label: 'Logros', value: robot.achievements })
-    
-    return {
-      slug: robot.slug,
-      name: robot.name,
-      category: robot.category || 'General',
-      year: robot.yearCreated || new Date().getFullYear(),
-      description: robot.description || '',
-      mainImage: robot.mainImage || '/images/default.jpg',
-      features: robot.sensors ? [robot.sensors] : [],
-      specs,
-      fullDescription: robot.description || '',
-      gallery: Array.isArray(robot.photos) ? robot.photos : [],
-    }
-  } catch (error) {
-    console.error('⚠️ Error reading robot from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
-    return null
   }
+  
+  console.error(`⚠️ Error reading robot ${slug} from DB (will use filesystem fallback):`, lastError instanceof Error ? lastError.message : String(lastError))
+  return null
 }
 
 /**
@@ -177,56 +204,83 @@ export function getRobotBySlug(slug: string): RobotData | null {
 }
 
 /**
- * Lee todas las noticias PUBLICADAS desde la base de datos
+ * Lee todas las noticias PUBLICADAS desde la base de datos con reintentos
  */
 export async function getAllNoticiasFromDB(): Promise<NoticiasMetadata[]> {
-  try {
-    const noticias = await prisma.news.findMany({
-      where: { status: 'published' },
-      orderBy: { date: 'desc' },
-    })
-    
-    return noticias.map(n => ({
-      slug: n.slug,
-      title: n.title,
-      date: n.date ? new Date(n.date).toLocaleDateString('es-ES') : new Date().toLocaleDateString('es-ES'),
-      category: n.category || 'General',
-      excerpt: n.excerpt || '',
-      mainImage: n.mainImage || '/images/default.jpg',
-    }))
-  } catch (error) {
-    console.error('⚠️ Error reading noticias from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
-    return []
+  const maxRetries = 3
+  let lastError: any = null
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`📰 Attempting to fetch published noticias from DB (attempt ${attempt}/${maxRetries})...`)
+      const noticias = await prisma.news.findMany({
+        where: { status: 'published' },
+        orderBy: { date: 'desc' },
+      })
+      
+      console.log(`✅ Successfully fetched ${noticias.length} published noticias from DB`)
+      return noticias.map(n => ({
+        slug: n.slug,
+        title: n.title,
+        date: n.date ? new Date(n.date).toLocaleDateString('es-ES') : new Date().toLocaleDateString('es-ES'),
+        category: n.category || 'General',
+        excerpt: n.excerpt || '',
+        mainImage: n.mainImage || '/images/default.jpg',
+      }))
+    } catch (error) {
+      lastError = error
+      console.error(`⚠️ Attempt ${attempt} failed:`, error instanceof Error ? error.message : String(error))
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      }
+    }
   }
+  
+  console.error('❌ Failed to fetch noticias from DB after all retries:', lastError instanceof Error ? lastError.message : String(lastError))
+  return []
 }
 
 /**
- * Lee una noticia PUBLICADA específica desde la base de datos
+ * Lee una noticia PUBLICADA específica desde la base de datos con reintentos
  */
 export async function getNoticiaBySlugFromDB(slug: string): Promise<NoticiaData | null> {
-  try {
-    const noticia = await prisma.news.findUnique({
-      where: { slug },
-    })
-    
-    if (!noticia || noticia.status !== 'published') {
-      return null
+  const maxRetries = 3
+  let lastError: any = null
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const noticia = await prisma.news.findUnique({
+        where: { slug },
+      })
+      
+      if (!noticia || noticia.status !== 'published') {
+        return null
+      }
+      
+      return {
+        slug: noticia.slug,
+        title: noticia.title,
+        date: noticia.date ? new Date(noticia.date).toLocaleDateString('es-ES') : new Date().toLocaleDateString('es-ES'),
+        category: noticia.category || 'General',
+        excerpt: noticia.excerpt || '',
+        mainImage: noticia.mainImage || '/images/default.jpg',
+        content: noticia.content || '',
+        photos: Array.isArray(noticia.photos) ? noticia.photos : [],
+      }
+    } catch (error) {
+      lastError = error
+      
+      // Wait before retrying (exponential backoff)
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      }
     }
-    
-    return {
-      slug: noticia.slug,
-      title: noticia.title,
-      date: noticia.date ? new Date(noticia.date).toLocaleDateString('es-ES') : new Date().toLocaleDateString('es-ES'),
-      category: noticia.category || 'General',
-      excerpt: noticia.excerpt || '',
-      mainImage: noticia.mainImage || '/images/default.jpg',
-      content: noticia.content || '',
-      photos: Array.isArray(noticia.photos) ? noticia.photos : [],
-    }
-  } catch (error) {
-    console.error('⚠️ Error reading noticia from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
-    return null
   }
+  
+  console.error(`⚠️ Error reading noticia ${slug} from DB (will use filesystem fallback):`, lastError instanceof Error ? lastError.message : String(lastError))
+  return null
 }
 
 /**
