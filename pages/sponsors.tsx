@@ -146,7 +146,7 @@ export default function Sponsors() {
               Establece alianzas estratégicas con el equipo de robótica más destacado de Misiones
             </p>
             <p className="text-lg text-gray-400 max-w-3xl mx-auto">
-              Representantes en competencias internacionales: RoboChallenge (Rumania), RSM Challenge 2025 (Brasil), WRO 2023 (Panamá), RobotypicalFest
+              Representantes en competencias internacionales: RoboChallenge (Rumania), RSM Challenge 2025 (Brasil), WRO 2023 (Panamá), Robotic People Fest (Colombia)
             </p>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function Sponsors() {
                 XpriT Robotics es el equipo de robótica más destacado de la provincia de Misiones, con más de 100 podios provinciales y logros nacionales e internacionales.
               </p>
               <p>
-                Ha representado a Argentina en competencias como <span className="text-cyan-400 font-semibold">RoboChallenge (Rumania)</span>, <span className="text-cyan-400 font-semibold">RSM Challenge 2025 (Brasil)</span>, <span className="text-cyan-400 font-semibold">WRO 2023 (Panamá)</span> y <span className="text-cyan-400 font-semibold">RobotypicalFest (Argentina)</span>, consolidándose como referente en innovación, educación tecnológica y robótica competitiva.
+                Ha representado a Argentina en competencias como <span className="text-cyan-400 font-semibold">RoboChallenge (Rumania)</span>, <span className="text-cyan-400 font-semibold">RSM Challenge 2025 (Brasil)</span>, <span className="text-cyan-400 font-semibold">WRO 2023 (Panamá)</span> y <span className="text-cyan-400 font-semibold">Robotic People Fest (Colombia)</span>, consolidándose como referente en innovación, educación tecnológica y robótica competitiva.
               </p>
               <p>
                 Los fondos recaudados mediante este programa de sponsorship serán destinados exclusivamente al <span className="text-cyan-400 font-semibold">desarrollo tecnológico del equipo, viajes, insumos y mejoras en los robots</span>.
@@ -183,22 +183,30 @@ export default function Sponsors() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition">
-              <div className="text-3xl mb-4">🚀</div>
+              <svg className="w-12 h-12 mb-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
               <h3 className="font-bold text-lg mb-2">Impulso Tecnológico</h3>
               <p className="text-gray-400">Desarrollo de innovación nacional en robótica competitiva</p>
             </div>
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition">
-              <div className="text-3xl mb-4">🎓</div>
+              <svg className="w-12 h-12 mb-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17.25c0 5.079 3.903 9.427 9 9.927m0-13c5.5 0 10 4.745 10 10.997 0 5.079-3.903 9.427-9 9.927m0-13v13m9-13c5.5 0 10 4.745 10 10.997 0 5.079-3.903 9.427-9 9.927" />
+              </svg>
               <h3 className="font-bold text-lg mb-2">Educación Jóvenes</h3>
               <p className="text-gray-400">Formación de talentos en tecnología y competencia</p>
             </div>
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition">
-              <div className="text-3xl mb-4">🌍</div>
+              <svg className="w-12 h-12 mb-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h.5A2.5 2.5 0 0016 5.5V3.935m0 2.946a24.881 24.881 0 015.945 2.007A9.122 9.122 0 0121 12a9.122 9.122 0 01.054 4.118 24.882 24.882 0 01-5.945 2.007M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
               <h3 className="font-bold text-lg mb-2">Visibilidad Global</h3>
               <p className="text-gray-400">Presencia en competencias internacionales</p>
             </div>
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition">
-              <div className="text-3xl mb-4">🤝</div>
+              <svg className="w-12 h-12 mb-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 12H9m4 5h4m-11 1H7a2 2 0 00-2 2v1a2 2 0 002 2h1m0 0h1a2 2 0 002-2v-1a2 2 0 00-2-2m7 0h1a2 2 0 012 2v1a2 2 0 01-2 2h-1m0 0h-1a2 2 0 01-2-2v-1a2 2 0 012-2" />
+              </svg>
               <h3 className="font-bold text-lg mb-2">Ecosistema Tech</h3>
               <p className="text-gray-400">Vinculación con comunidad tecnológica nacional</p>
             </div>
@@ -314,7 +322,7 @@ export default function Sponsors() {
                 </tr>
                 <tr className="border-b border-gray-700 hover:bg-gray-750 transition">
                   <td className="px-6 py-4 font-semibold text-gray-200">Menciones Redes</td>
-                  {['1x/mes', '2-3x/semana', 'Diaria', 'Diaria+'].map((item, idx) => (
+                  {['1x/mes', '2-3x/mes', '1x/semana', '2x/semana'].map((item, idx) => (
                     <td key={idx} className="px-6 py-4 text-center text-gray-300">
                       {item}
                     </td>
