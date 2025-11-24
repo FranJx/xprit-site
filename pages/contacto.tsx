@@ -1,27 +1,21 @@
 import Head from 'next/head'
-import { useState } from 'react'
 
 export default function Contacto() {
-  const [formState, setFormState] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  })
-  const [submitted, setSubmitted] = useState(false)
+  const handleMailtoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const name = (document.getElementById('name') as HTMLInputElement)?.value || '';
+    const email = (document.getElementById('email') as HTMLInputElement)?.value || '';
+    const subject = (document.getElementById('subject') as HTMLInputElement)?.value || '';
+    const message = (document.getElementById('message') as HTMLTextAreaElement)?.value || '';
+    
+    if (!name || !email || !subject || !message) {
+      alert('Por favor completa todos los campos');
+      e.preventDefault();
+      return;
+    }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormState({ ...formState, [e.target.name]: e.target.value })
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Aquí iría la lógica de envío (EmailJS, Netlify Forms, etc.)
-    console.log('Form submitted:', formState)
-    setSubmitted(true)
-    setTimeout(() => setSubmitted(false), 5000)
-    setFormState({ name: '', email: '', subject: '', message: '' })
-  }
+    const mailtoLink = `mailto:info@xprit-robotics.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`De: ${name} (${email})\n\n${message}`)}`;
+    window.location.href = mailtoLink;
+  };
 
   return (
     <>
@@ -38,20 +32,12 @@ export default function Contacto() {
             <div>
               <h2 className="text-2xl font-bold mb-6 text-cyan-300">Envíanos un mensaje</h2>
               
-              {submitted && (
-                <div className="mb-6 p-4 bg-green-500/20 border border-green-500 rounded text-green-300">
-                  ✓ Mensaje enviado correctamente. Te contactaremos pronto.
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-300 mb-2">Nombre</label>
                   <input
                     type="text"
-                    name="name"
-                    value={formState.name}
-                    onChange={handleChange}
+                    id="name"
                     required
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none transition-colors"
                     placeholder="Tu nombre"
@@ -61,9 +47,7 @@ export default function Contacto() {
                   <label className="block text-sm font-semibold text-gray-300 mb-2">Email</label>
                   <input
                     type="email"
-                    name="email"
-                    value={formState.email}
-                    onChange={handleChange}
+                    id="email"
                     required
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none transition-colors"
                     placeholder="tu@email.com"
@@ -73,9 +57,7 @@ export default function Contacto() {
                   <label className="block text-sm font-semibold text-gray-300 mb-2">Asunto</label>
                   <input
                     type="text"
-                    name="subject"
-                    value={formState.subject}
-                    onChange={handleChange}
+                    id="subject"
                     required
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none transition-colors"
                     placeholder="Asunto del mensaje"
@@ -84,25 +66,25 @@ export default function Contacto() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-300 mb-2">Mensaje</label>
                   <textarea
-                    name="message"
-                    value={formState.message}
-                    onChange={handleChange}
+                    id="message"
                     required
-                    rows={5}
+                    rows={4}
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none transition-colors resize-none"
-                    placeholder="Tu mensaje aquí..."
+                    placeholder="Tu mensaje"
                   ></textarea>
                 </div>
-                <button
-                  type="submit"
-                  className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 transform hover:scale-105"
+
+                <a
+                  href="#"
+                  onClick={handleMailtoClick}
+                  className="w-full block px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors text-center"
                 >
-                  Enviar mensaje
-                </button>
+                  📧 Enviar por email
+                </a>
               </form>
 
               <p className="text-sm text-gray-500 mt-4">
-                📝 Nota: Este formulario aún no está conectado a un servicio de email. Próximamente se integrará con EmailJS o Netlify Forms.
+                ✓ Al hacer click, se abrirá tu cliente de email con el mensaje pre-rellenado.
               </p>
             </div>
 

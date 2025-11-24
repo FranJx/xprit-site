@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
   return (
@@ -89,6 +90,24 @@ export default function Home() {
               <div className="p-8 bg-gray-800 border border-gray-700 rounded-lg">
                 <p className="text-lg text-cyan-300 font-semibold mb-4">Campeón Nacional WRO 2025</p>
                 <p className="text-gray-400">Seguimos demostrando excelencia con nuevas innovaciones y diseños.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Sponsors Section */}
+        <section className="py-24 px-6 bg-gray-900 border-t border-gray-700">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-4xl font-bold text-center mb-4">Nuestros Sponsors</h2>
+            <p className="text-center text-gray-400 mb-12">Empresas que confían en XpriT Robotics y apoyan la innovación</p>
+            
+            {/* Carrusel vacío con CTA */}
+            <div className="relative w-full h-40 bg-gradient-to-r from-gray-800 to-gray-800 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="text-center">
+                <p className="text-gray-400 mb-4">Proximamente nuestros sponsors aquí</p>
+                <Link href="/sponsors" className="inline-block px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300">
+                  ¿Quieres apoyarnos? Únete al programa de sponsors
+                </Link>
               </div>
             </div>
           </div>
