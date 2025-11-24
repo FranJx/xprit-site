@@ -1,13 +1,19 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { getAllNoticias } from '../lib/content'
+import { getAllNoticiasFromDB, getAllNoticias } from '../lib/content'
 
 export async function getStaticProps() {
-  const noticias = getAllNoticias()
+  // Intenta cargar noticias publicadas desde BD
+  let noticias = await getAllNoticiasFromDB()
+  
+  // Si no hay noticias en BD, carga del filesystem (legacy)
+  if (noticias.length === 0) {
+    noticias = getAllNoticias()
+  }
   
   return {
     props: { noticias },
-    revalidate: 60, // ISR: revalidar cada 60 segundos
+    revalidate: 10, // ISR: revalidar cada 10 segundos para actualizaciones rápidas
   }
 }
 

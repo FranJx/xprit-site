@@ -176,6 +176,58 @@ export function getRobotBySlug(slug: string): RobotData | null {
 }
 
 /**
+ * Lee todas las noticias PUBLICADAS desde la base de datos
+ */
+export async function getAllNoticiasFromDB(): Promise<NoticiasMetadata[]> {
+  try {
+    const noticias = await prisma.news.findMany({
+      where: { status: 'published' },
+      orderBy: { date: 'desc' },
+    })
+    
+    return noticias.map(n => ({
+      slug: n.slug,
+      title: n.title,
+      date: n.date ? new Date(n.date).toLocaleDateString('es-ES') : new Date().toLocaleDateString('es-ES'),
+      category: n.category || 'General',
+      excerpt: n.excerpt || '',
+      mainImage: n.mainImage || '/images/default.jpg',
+    }))
+  } catch (error) {
+    console.error('Error reading noticias from DB:', error)
+    return []
+  }
+}
+
+/**
+ * Lee una noticia PUBLICADA específica desde la base de datos
+ */
+export async function getNoticiaBySlugFromDB(slug: string): Promise<NoticiaData | null> {
+  try {
+    const noticia = await prisma.news.findUnique({
+      where: { slug },
+    })
+    
+    if (!noticia || noticia.status !== 'published') {
+      return null
+    }
+    
+    return {
+      slug: noticia.slug,
+      title: noticia.title,
+      date: noticia.date ? new Date(noticia.date).toLocaleDateString('es-ES') : new Date().toLocaleDateString('es-ES'),
+      category: noticia.category || 'General',
+      excerpt: noticia.excerpt || '',
+      mainImage: noticia.mainImage || '/images/default.jpg',
+      content: noticia.content || '',
+    }
+  } catch (error) {
+    console.error('Error reading noticia from DB:', error)
+    return null
+  }
+}
+
+/**
  * Lee todas las noticias desde content/noticias/
  */
 export function getAllNoticias(): NoticiasMetadata[] {

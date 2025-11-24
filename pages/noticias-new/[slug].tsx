@@ -1,27 +1,47 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getAllNoticias, getNoticiaBySlug, NoticiaData } from '../../lib/content'
+import { getAllNoticiasFromDB, getNoticiaBySlugFromDB, getAllNoticias, getNoticiaBySlug, NoticiaData } from '../../lib/content'
 
 export async function getStaticPaths() {
-  const noticias = getAllNoticias()
+  // Intenta cargar noticias desde BD
+  let noticias = await getAllNoticiasFromDB()
+  
+  // Si no hay en BD, carga del filesystem (legacy)
+  if (noticias.length === 0) {
+    noticias = getAllNoticias()
+  }
+  
   const paths = noticias.map(n => ({ params: { slug: n.slug } }))
   return { paths, fallback: 'blocking' }
 }
 
 export async function getStaticProps({ params }: { params: { slug: string } }) {
-  const noticia = getNoticiaBySlug(params.slug)
+  // Intenta cargar noticia publicada desde BD
+  let noticia = await getNoticiaBySlugFromDB(params.slug)
+  
+  // Si no está en BD o no está publicada, intenta cargar del filesystem (legacy)
+  if (!noticia) {
+    noticia = getNoticiaBySlug(params.slug)
+  }
+  
   if (!noticia) return { notFound: true }
-  return { props: { noticia }, revalidate: 60 }
+  return { props: { noticia }, revalidate: 10 }
 }
 
 export default function NoticiaPage({ noticia }: { noticia: NoticiaData }) {
+  // Determinar si la imagen es URL de Cloudinary o ruta relativa
+  const isCloudinaryUrl = noticia.mainImage?.startsWith('http')
+  const imageUrl = isCloudinaryUrl 
+    ? noticia.mainImage 
+    : `/content/noticias/${noticia.slug}/images/${noticia.mainImage}`
+  
   return (
     <>
       <Head>
         <title>{noticia.title} — XpriT Robotics</title>
         <meta name="description" content={noticia.excerpt} />
-        <meta property="og:image" content={`/content/noticias/${noticia.slug}/images/${noticia.mainImage}`} />
+        <meta property="og:image" content={imageUrl} />
       </Head>
       <main className="min-h-screen p-8">
         <div className="max-w-3xl mx-auto">
@@ -33,9 +53,10 @@ export default function NoticiaPage({ noticia }: { noticia: NoticiaData }) {
           {noticia.mainImage && (
             <div className="w-full h-96 bg-gray-700 rounded-lg mb-8 relative overflow-hidden">
               <Image
-                src={`/content/noticias/${noticia.slug}/images/${noticia.mainImage}`}
+                src={imageUrl}
                 alt={noticia.title}
                 fill
+                unoptimized={isCloudinaryUrl}
                 className="object-cover"
               />
             </div>
