@@ -1,15 +1,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 import jwt from 'jsonwebtoken';
 import prisma from '../../../lib/prisma';
 import { IncomingForm } from 'formidable';
 import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
 interface DecodedToken {
   username: string;
   isAdmin: boolean;
 }
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export const config = {
   api: {
@@ -76,75 +82,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log(`📝 Robot slug: ${slug}`);
 
-    // Create directory structure in BOTH locations:
-    // 1. /public/content/robots/ (for browser access during development)
-    // 2. /content/robots/ (for production/static rendering)
-    
-    const publicRobotDir = path.join(process.cwd(), 'public/content/robots', slug);
-    const publicImagesDir = path.join(publicRobotDir, 'images');
-    const contentRobotDir = path.join(process.cwd(), 'content/robots', slug);
-    const contentImagesDir = path.join(contentRobotDir, 'images');
-
-    console.log(`📁 Creating directories...`);
-    console.log(`   - Public robot dir: ${publicRobotDir}`);
-    console.log(`   - Content robot dir: ${contentRobotDir}`);
-
-    try {
-      await mkdir(publicImagesDir, { recursive: true });
-      await mkdir(contentImagesDir, { recursive: true });
-      console.log(`✓ All directories created successfully`);
-    } catch (mkdirError) {
-      console.error('❌ Failed to create directories:', mkdirError);
-      return res.status(500).json({ message: 'Failed to create directories' });
-    }
-
-    // Save images to BOTH locations
+    // Upload images to Cloudinary
     const imageUrls: string[] = [];
     const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
 
-    console.log(`📸 Processing ${imageFiles.length} images...`);
+    console.log(`☁️ Uploading ${imageFiles.length} images to Cloudinary...`);
 
     for (let i = 0; i < imageFiles.length; i++) {
       const file = imageFiles[i];
       try {
-        // Generate unique filename
-        const ext = path.extname(file.originalFilename || '.jpg');
-        const filename = `img-${i + 1}${ext}`;
-        
-        const publicFilepath = path.join(publicImagesDir, filename);
-        const contentFilepath = path.join(contentImagesDir, filename);
+        console.log(`   - Uploading image ${i + 1}: ${file.originalFilename}`);
 
-        console.log(`   - Saving image ${i + 1}: ${filename}`);
+        // Upload to Cloudinary
+        const result = await cloudinary.uploader.upload(file.filepath, {
+          folder: `xprit-robotics/robots/${slug}`,
+          resource_type: 'auto',
+          public_id: `img-${i + 1}`,
+        });
 
-        // Read from temp location
-        const fileContent = fs.readFileSync(file.filepath);
-        
-        // Write to both locations
-        await writeFile(publicFilepath, fileContent);
-        await writeFile(contentFilepath, fileContent);
-
-        // Verify both files exist
-        if (fs.existsSync(publicFilepath) && fs.existsSync(contentFilepath)) {
-          const stats = fs.statSync(publicFilepath);
-          console.log(`   ✓ Saved successfully to both locations (${stats.size} bytes)`);
-          // Use /content/ path for storage (works in both dev and production)
-          imageUrls.push(`/content/robots/${slug}/images/${filename}`);
-        } else {
-          console.error(`   ❌ File not found after save`);
-          if (!fs.existsSync(publicFilepath)) console.error(`      - Missing in public: ${publicFilepath}`);
-          if (!fs.existsSync(contentFilepath)) console.error(`      - Missing in content: ${contentFilepath}`);
-        }
-      } catch (fileError) {
-        console.error(`   ❌ Error saving image:`, fileError);
+        console.log(`   ✓ Uploaded successfully: ${result.secure_url}`);
+        imageUrls.push(result.secure_url);
+      } catch (uploadError) {
+        console.error(`   ❌ Error uploading to Cloudinary:`, uploadError);
+        return res.status(500).json({ message: 'Failed to upload image to Cloudinary' });
       }
     }
 
     if (imageUrls.length === 0) {
-      console.error('❌ No images were saved successfully');
-      return res.status(500).json({ message: 'Failed to save images' });
+      console.error('❌ No images were uploaded');
+      return res.status(500).json({ message: 'Failed to upload images' });
     }
 
-    console.log(`✓ All images saved. URLs: ${imageUrls.join(', ')}`);
+    console.log(`✓ All images uploaded. URLs:`, imageUrls);
 
     // Create robot submission in database
     console.log(`💾 Creating database record...`);
@@ -164,8 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         maxSpeed: maxSpeed || null,
         sensors: sensors || null,
         achievements: achievements || null,
-        // Use full public path for images
-        mainImage: imageUrls[0] ? imageUrls[0] : null,
+        mainImage: imageUrls[0] || null,
         photos: imageUrls.slice(1),
         status: 'pending',
         submittedBy: submittedBy || decoded.username,
