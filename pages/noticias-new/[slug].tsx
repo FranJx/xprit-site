@@ -1,7 +1,14 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState } from 'react'
+import { remark } from 'remark'
+import html from 'remark-html'
 import { getAllNoticiasFromDB, getNoticiaBySlugFromDB, getAllNoticias, getNoticiaBySlug, NoticiaData } from '../../lib/content'
+
+interface NoticiaPageProps {
+  noticia: NoticiaData & { contentHtml: string; photos?: string[] }
+}
 
 export async function getStaticPaths() {
   // Intenta cargar noticias desde BD
@@ -26,15 +33,35 @@ export async function getStaticProps({ params }: { params: { slug: string } }) {
   }
   
   if (!noticia) return { notFound: true }
-  return { props: { noticia }, revalidate: 10 }
+  
+  // Procesar Markdown a HTML
+  const processedContent = await remark()
+    .use(html)
+    .process(noticia.content || '')
+  const contentHtml = processedContent.toString()
+  
+  return { 
+    props: { 
+      noticia: {
+        ...noticia,
+        contentHtml,
+      }
+    }, 
+    revalidate: 10 
+  }
 }
 
-export default function NoticiaPage({ noticia }: { noticia: NoticiaData }) {
+export default function NoticiaPage({ noticia }: NoticiaPageProps) {
+  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null)
+  
   // Determinar si la imagen es URL de Cloudinary o ruta relativa
   const isCloudinaryUrl = noticia.mainImage?.startsWith('http')
   const imageUrl = isCloudinaryUrl 
     ? noticia.mainImage 
     : `/content/noticias/${noticia.slug}/images/${noticia.mainImage}`
+  
+  const photos = noticia.photos || []
+  const hasPhotos = photos && photos.length > 0
   
   return (
     <>
@@ -70,12 +97,61 @@ export default function NoticiaPage({ noticia }: { noticia: NoticiaData }) {
             <span className="bg-gray-800 px-2 py-1 rounded">{noticia.category}</span>
           </div>
 
-          {/* Contenido Markdown */}
-          <article className="bg-gray-800 p-8 rounded-lg border border-gray-700 prose prose-invert max-w-none">
-            <div className="space-y-4 text-gray-300 leading-relaxed whitespace-pre-wrap">
-              {noticia.content}
-            </div>
+          {/* Contenido Markdown Renderizado */}
+          <article className="bg-gray-800 p-8 rounded-lg border border-gray-700 markdown-content mb-8">
+            <div 
+              className="prose prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: noticia.contentHtml }}
+            />
           </article>
+
+          {/* Galería de Fotos */}
+          {hasPhotos && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold mb-6 text-cyan-300">Galería</h2>
+              
+              {selectedPhoto !== null && (
+                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setSelectedPhoto(null)}>
+                  <div className="relative w-full max-w-4xl h-96">
+                    <Image
+                      src={photos[selectedPhoto]}
+                      alt={`Foto ${selectedPhoto + 1}`}
+                      fill
+                      unoptimized
+                      className="object-contain"
+                    />
+                    <button
+                      onClick={() => setSelectedPhoto(null)}
+                      className="absolute top-4 right-4 text-white bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center text-2xl"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {photos.map((photo, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setSelectedPhoto(idx)}
+                    className="relative h-48 bg-gray-700 rounded-lg overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
+                  >
+                    <Image
+                      src={photo}
+                      alt={`Foto ${idx + 1}`}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
+                      <span className="text-white text-2xl opacity-0 hover:opacity-100 transition-opacity">🔍</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* CTA */}
           <div className="mt-12 p-8 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 rounded-lg text-center">
@@ -86,6 +162,33 @@ export default function NoticiaPage({ noticia }: { noticia: NoticiaData }) {
           </div>
         </div>
       </main>
+      
+      <style jsx>{`
+        :global(.prose-invert h1) {
+          @apply text-3xl font-bold mb-4 text-cyan-300;
+        }
+        :global(.prose-invert h2) {
+          @apply text-2xl font-bold mb-3 mt-6 text-cyan-300;
+        }
+        :global(.prose-invert h3) {
+          @apply text-xl font-bold mb-2 mt-4 text-cyan-300;
+        }
+        :global(.prose-invert p) {
+          @apply mb-4 text-gray-300 leading-relaxed;
+        }
+        :global(.prose-invert strong) {
+          @apply font-bold text-cyan-200;
+        }
+        :global(.prose-invert em) {
+          @apply italic text-cyan-100;
+        }
+        :global(.prose-invert ul) {
+          @apply list-disc list-inside mb-4 text-gray-300;
+        }
+        :global(.prose-invert li) {
+          @apply mb-2;
+        }
+      `}</style>
     </>
   )
 }

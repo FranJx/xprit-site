@@ -32,6 +32,7 @@ export interface NoticiasMetadata {
 
 export interface NoticiaData extends NoticiasMetadata {
   content: string
+  photos?: string[]
 }
 
 /**
@@ -220,6 +221,7 @@ export async function getNoticiaBySlugFromDB(slug: string): Promise<NoticiaData 
       excerpt: noticia.excerpt || '',
       mainImage: noticia.mainImage || '/images/default.jpg',
       content: noticia.content || '',
+      photos: Array.isArray(noticia.photos) ? noticia.photos : [],
     }
   } catch (error) {
     console.error('Error reading noticia from DB:', error)
