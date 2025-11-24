@@ -55,7 +55,7 @@ export async function getAllRobotsFromDB(): Promise<RobotMetadata[]> {
       features: r.sensors ? [r.sensors] : [],
     }))
   } catch (error) {
-    console.error('Error reading robots from DB:', error)
+    console.error('⚠️ Error reading robots from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
     return []
   }
 }
@@ -99,7 +99,7 @@ export async function getRobotBySlugFromDB(slug: string): Promise<RobotData | nu
       gallery: Array.isArray(robot.photos) ? robot.photos : [],
     }
   } catch (error) {
-    console.error('Error reading robot from DB:', error)
+    console.error('⚠️ Error reading robot from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
     return null
   }
 }
@@ -195,7 +195,7 @@ export async function getAllNoticiasFromDB(): Promise<NoticiasMetadata[]> {
       mainImage: n.mainImage || '/images/default.jpg',
     }))
   } catch (error) {
-    console.error('Error reading noticias from DB:', error)
+    console.error('⚠️ Error reading noticias from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
     return []
   }
 }
@@ -224,7 +224,7 @@ export async function getNoticiaBySlugFromDB(slug: string): Promise<NoticiaData 
       photos: Array.isArray(noticia.photos) ? noticia.photos : [],
     }
   } catch (error) {
-    console.error('Error reading noticia from DB:', error)
+    console.error('⚠️ Error reading noticia from DB (will use filesystem fallback):', error instanceof Error ? error.message : String(error))
     return null
   }
 }

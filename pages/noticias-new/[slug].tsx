@@ -15,7 +15,8 @@ export async function getStaticPaths() {
   let noticias = await getAllNoticiasFromDB()
   
   // Si no hay en BD, carga del filesystem (legacy)
-  if (noticias.length === 0) {
+  if (!noticias || noticias.length === 0) {
+    console.log('📰 Loading noticia paths from filesystem (database unavailable or empty)')
     noticias = getAllNoticias()
   }
   
@@ -29,6 +30,7 @@ export async function getStaticProps({ params }: { params: { slug: string } }) {
   
   // Si no está en BD o no está publicada, intenta cargar del filesystem (legacy)
   if (!noticia) {
+    console.log(`📰 Loading noticia ${params.slug} from filesystem (not found in database)`)
     noticia = getNoticiaBySlug(params.slug)
   }
   

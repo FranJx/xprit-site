@@ -2,20 +2,35 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { getRobotBySlugFromDB, getAllRobotsFromDB, RobotData } from '../../lib/content'
+import { getRobotBySlugFromDB, getAllRobotsFromDB, getRobotBySlug, getAllRobots, RobotData } from '../../lib/content'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 export async function getStaticPaths() {
   // Get all approved robots from database
-  const robots = await getAllRobotsFromDB()
+  let robots = await getAllRobotsFromDB()
+  
+  // Si no hay en BD, carga del filesystem (legacy)
+  if (!robots || robots.length === 0) {
+    console.log('🤖 Loading robot paths from filesystem (database unavailable or empty)')
+    robots = getAllRobots()
+  }
+  
   const paths = robots.map(r => ({ params: { slug: r.slug } }))
   return { paths, fallback: 'blocking' }
 }
 
 export async function getStaticProps({ params }: { params: { slug: string } }) {
-  const robot = await getRobotBySlugFromDB(params.slug)
+  // Intenta cargar robot aprobado desde BD
+  let robot = await getRobotBySlugFromDB(params.slug)
+  
+  // Si no está en BD o no está aprobado, intenta cargar del filesystem (legacy)
+  if (!robot) {
+    console.log(`🤖 Loading robot ${params.slug} from filesystem (not found in database)`)
+    robot = getRobotBySlug(params.slug)
+  }
+  
   if (!robot) return { notFound: true }
   return { props: { robot }, revalidate: 10 } // Re-generar cada 10 segundos para reflejar cambios rápidamente
 }

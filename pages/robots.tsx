@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getAllRobotsFromDB } from '../lib/content'
+import { getAllRobotsFromDB, getAllRobots } from '../lib/content'
 
 interface Robot {
   slug: string
@@ -13,7 +13,17 @@ interface Robot {
 }
 
 export async function getStaticProps() {
-  const robots = await getAllRobotsFromDB()
+  // Intenta cargar robots aprobados desde BD
+  let robots = await getAllRobotsFromDB()
+  
+  // Si no hay en BD (error o vacío), carga del filesystem (legacy)
+  if (!robots || robots.length === 0) {
+    console.log('🤖 Loading robots from filesystem (database unavailable or empty)')
+    robots = getAllRobots()
+  } else {
+    console.log(`🤖 Loaded ${robots.length} approved robots from database`)
+  }
+  
   return {
     props: { robots },
     revalidate: 10, // Re-generar cada 10 segundos para reflejar cambios rápidamente

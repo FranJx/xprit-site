@@ -6,9 +6,12 @@ export async function getStaticProps() {
   // Intenta cargar noticias publicadas desde BD
   let noticias = await getAllNoticiasFromDB()
   
-  // Si no hay noticias en BD, carga del filesystem (legacy)
-  if (noticias.length === 0) {
+  // Si no hay en BD (error o vacío), carga del filesystem (legacy)
+  if (!noticias || noticias.length === 0) {
+    console.log('📰 Loading noticias from filesystem (database unavailable or empty)')
     noticias = getAllNoticias()
+  } else {
+    console.log(`📰 Loaded ${noticias.length} published noticias from database`)
   }
   
   return {
