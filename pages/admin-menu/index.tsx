@@ -29,7 +29,11 @@ export default function AdminMenu() {
   const [comments, setComments] = useState('');
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending');
 
   // Cargar robots al montar el componente
   useEffect(() => {
@@ -43,21 +47,16 @@ export default function AdminMenu() {
         return;
       }
 
-      // Cargar robots
+      // Cargar todos los robots
       try {
-        const res = await fetch('/api/robots/pending', {
+        const res = await fetch('/api/robots/all', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) throw new Error(`Error: ${res.status}`);
         
         const data = await res.json();
-        console.log('✓ Robots loaded:', data.data);
-        data.data?.forEach((robot: Robot) => {
-          if (robot.mainImage) {
-            console.log(`  - ${robot.name}: ${robot.mainImage}`);
-          }
-        });
+        console.log('✓ All robots loaded:', data.data);
         setRobots(data.data || []);
         setLoading(false);
       } catch (err) {
@@ -142,12 +141,54 @@ export default function AdminMenu() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!selectedRobot || deleteConfirmation !== 'ELIMINAR') {
+      setError('Debes escribir "ELIMINAR" para confirmar');
+      return;
+    }
+
+    setDeleting(true);
+    const token = localStorage.getItem('team_token');
+
+    try {
+      const res = await fetch('/api/robots/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ slug: selectedRobot.slug }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message);
+      }
+
+      setSuccess('✓ Robot eliminado');
+      setSelectedRobot(null);
+      setDeleteConfirmation('');
+      setShowDeleteModal(false);
+
+      setTimeout(() => {
+        setSuccess('');
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error eliminando robot');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.clear();
     router.push('/team/login');
   };
 
   const pendingRobots = robots.filter(r => r.status === 'pending');
+  const approvedRobots = robots.filter(r => r.status === 'approved');
+  const visibleRobots = activeTab === 'pending' ? pendingRobots : approvedRobots;
 
   return (
     <>
@@ -180,12 +221,35 @@ export default function AdminMenu() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Robot List */}
               <div className="lg:col-span-1 bg-gray-800 rounded-lg p-4">
-                <h2 className="text-lg font-bold text-white mb-4">Pendientes ({pendingRobots.length})</h2>
-                {pendingRobots.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Sin robots pendientes</p>
+                {/* Tabs */}
+                <div className="flex gap-2 mb-4 border-b border-gray-700">
+                  <button
+                    onClick={() => setActiveTab('pending')}
+                    className={`px-4 py-2 font-semibold transition ${
+                      activeTab === 'pending'
+                        ? 'border-b-2 border-cyan-400 text-cyan-400'
+                        : 'text-gray-400 hover:text-gray-300'
+                    }`}
+                  >
+                    Pendientes ({pendingRobots.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('approved')}
+                    className={`px-4 py-2 font-semibold transition ${
+                      activeTab === 'approved'
+                        ? 'border-b-2 border-cyan-400 text-cyan-400'
+                        : 'text-gray-400 hover:text-gray-300'
+                    }`}
+                  >
+                    Aprobados ({approvedRobots.length})
+                  </button>
+                </div>
+
+                {visibleRobots.length === 0 ? (
+                  <p className="text-gray-400 text-sm">Sin robots en esta categoría</p>
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {pendingRobots.map(r => (
+                    {visibleRobots.map(r => (
                       <button
                         key={r.id}
                         onClick={() => {
@@ -275,21 +339,69 @@ export default function AdminMenu() {
                     />
 
                     <div className="flex gap-2">
-                      <button
-                        onClick={handleApprove}
-                        disabled={approving}
-                        className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-2 rounded"
-                      >
-                        {approving ? 'Aprobando...' : 'Aprobar'}
-                      </button>
-                      <button
-                        onClick={handleReject}
-                        disabled={rejecting}
-                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white py-2 rounded"
-                      >
-                        {rejecting ? 'Rechazando...' : 'Rechazar'}
-                      </button>
+                      {activeTab === 'pending' ? (
+                        <>
+                          <button
+                            onClick={handleApprove}
+                            disabled={approving}
+                            className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-2 rounded"
+                          >
+                            {approving ? 'Aprobando...' : 'Aprobar'}
+                          </button>
+                          <button
+                            onClick={handleReject}
+                            disabled={rejecting}
+                            className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white py-2 rounded"
+                          >
+                            {rejecting ? 'Rechazando...' : 'Rechazar'}
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setShowDeleteModal(true)}
+                          className="flex-1 bg-red-700 hover:bg-red-800 text-white py-2 rounded"
+                        >
+                          🗑️ Eliminar Robot
+                        </button>
+                      )}
                     </div>
+
+                    {/* Modal de confirmación de eliminación */}
+                    {showDeleteModal && (
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-gray-800 rounded-lg p-6 max-w-sm">
+                          <h3 className="text-xl font-bold text-white mb-4">⚠️ Eliminar Robot</h3>
+                          <p className="text-gray-300 mb-4">
+                            Esta acción no se puede deshacer. Para confirmar, escribe "ELIMINAR":
+                          </p>
+                          <input
+                            type="text"
+                            value={deleteConfirmation}
+                            onChange={e => setDeleteConfirmation(e.target.value)}
+                            placeholder="Escribe ELIMINAR"
+                            className="w-full bg-gray-700 text-white rounded p-2 mb-4"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setShowDeleteModal(false);
+                                setDeleteConfirmation('');
+                              }}
+                              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              onClick={handleDelete}
+                              disabled={deleting || deleteConfirmation !== 'ELIMINAR'}
+                              className="flex-1 bg-red-700 hover:bg-red-800 disabled:bg-gray-600 text-white py-2 rounded"
+                            >
+                              {deleting ? 'Eliminando...' : 'Confirmar Eliminación'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <p className="text-gray-400 text-center py-12">Selecciona un robot</p>
