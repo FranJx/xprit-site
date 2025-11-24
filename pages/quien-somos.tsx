@@ -53,7 +53,7 @@ export default function QuienSomos() {
                 XpriT Robotics fue fundado alrededor del año <strong>2020</strong> como un proyecto independiente dedicado al desarrollo de robots competitivos y hardware electrónico propio.
               </p>
               <p>
-                El equipo nació en <strong>Misiones, Argentina</strong>, impulsado por <strong>Franco Joaquín Aguirre Elizalde</strong>, competidor con más de 8 años de experiencia en robótica y más de 40 podios en competencias provinciales, nacionales e internacionales.
+                El equipo nació en <strong>Misiones, Argentina</strong>, impulsado por <strong>Franco Joaquín Aguirre Elizalde</strong>, competidor con más de 8 años de experiencia en robótica y + de 100 podios en competencias provinciales, nacionales e internacionales.
               </p>
               <p>
                 Con el tiempo, XpriT Robotics pasó de ser un simple proyecto personal a una marca completa dedicada al diseño de robots, placas electrónicas y sistemas para competencias de alto rendimiento.
@@ -90,7 +90,7 @@ export default function QuienSomos() {
             </div>
             <div className="bg-gray-800 p-8 border border-gray-700 rounded-lg">
               <ul className="space-y-3 text-gray-300">
-                <li>✅ Más de 40 podios en competiciones de robótica (Minisumo, Velocistas, Sumo, Laberinto, VSSS, etc.)</li>
+                <li>✅ + de 100 podios en competiciones de robótica (Minisumo, Velocistas, Sumo, Laberinto, VSSS, etc.)</li>
                 <li>✅ Campeón Nacional WRO 2023</li>
                 <li>✅ Campeón Nacional WRO 2025</li>
                 <li>✅ 3.er puesto en Minisumo Pro 2023 a nivel nacional (Argentina)</li>
