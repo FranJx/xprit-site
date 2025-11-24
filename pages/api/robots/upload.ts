@@ -46,6 +46,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const motors = Array.isArray(fields.motors) ? fields.motors[0] : fields.motors;
     const yearCreated = Array.isArray(fields.yearCreated) ? fields.yearCreated[0] : fields.yearCreated;
     const description = Array.isArray(fields.description) ? fields.description[0] : fields.description;
+    const mainBoard = Array.isArray(fields.mainBoard) ? fields.mainBoard[0] : fields.mainBoard;
+    const weight = Array.isArray(fields.weight) ? fields.weight[0] : fields.weight;
+    const dimensions = Array.isArray(fields.dimensions) ? fields.dimensions[0] : fields.dimensions;
+    const maxSpeed = Array.isArray(fields.maxSpeed) ? fields.maxSpeed[0] : fields.maxSpeed;
+    const sensors = Array.isArray(fields.sensors) ? fields.sensors[0] : fields.sensors;
+    const achievements = Array.isArray(fields.achievements) ? fields.achievements[0] : fields.achievements;
     const submittedBy = Array.isArray(fields.submittedBy) ? fields.submittedBy[0] : fields.submittedBy;
 
     // Validate required fields
@@ -115,6 +121,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         motors: motors || null,
         yearCreated: yearCreated ? parseInt(yearCreated as string) : new Date().getFullYear(),
         description: description || null,
+        mainBoard: mainBoard || null,
+        weight: weight || null,
+        dimensions: dimensions || null,
+        maxSpeed: maxSpeed || null,
+        sensors: sensors || null,
+        achievements: achievements || null,
         mainImage: imageUrls[0] || null,
         photos: imageUrls.slice(1),
         status: 'pending',

@@ -52,6 +52,12 @@ export default function AdminMenu() {
         if (!res.ok) throw new Error(`Error: ${res.status}`);
         
         const data = await res.json();
+        console.log('✓ Robots loaded:', data.data);
+        data.data?.forEach((robot: Robot) => {
+          if (robot.mainImage) {
+            console.log(`  - ${robot.name}: ${robot.mainImage}`);
+          }
+        });
         setRobots(data.data || []);
         setLoading(false);
       } catch (err) {

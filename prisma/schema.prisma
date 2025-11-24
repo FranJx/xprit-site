@@ -20,6 +20,14 @@ model RobotSubmission {
   mainImage String?
   photos    String[] // URLs de Cloudinary
   
+  // Especificaciones adicionales
+  mainBoard   String?
+  weight      String?
+  dimensions  String?
+  maxSpeed    String?
+  sensors     String?
+  achievements String?
+  
   status    String   @default("pending") // pending, approved, rejected
   comments  String?  @db.Text
   submittedBy String

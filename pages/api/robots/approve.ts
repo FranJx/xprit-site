@@ -91,8 +91,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Create metadata.json
     const specs = [
+      robot.category && { label: 'Categoría', value: robot.category },
+      robot.mainBoard && { label: 'Placa electrónica', value: robot.mainBoard },
+      robot.weight && { label: 'Peso', value: robot.weight },
+      robot.dimensions && { label: 'Dimensiones', value: robot.dimensions },
+      robot.maxSpeed && { label: 'Velocidad máxima', value: robot.maxSpeed },
+      robot.sensors && { label: 'Sensores', value: robot.sensors },
       robot.battery && { label: 'Batería', value: robot.battery },
       robot.motors && { label: 'Motores', value: robot.motors },
+      robot.achievements && { label: 'Logros', value: robot.achievements },
     ].filter(Boolean);
 
     const mainImagePath = mainImageFilename ? `/images/${mainImageFilename}` : '/images/default.jpg';

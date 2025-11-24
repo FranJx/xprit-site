@@ -10,6 +10,13 @@ interface RobotFormData {
   motors: string;
   yearCreated: string;
   description: string;
+  // Especificaciones adicionales opcionales
+  mainBoard?: string;
+  weight?: string;
+  dimensions?: string;
+  maxSpeed?: string;
+  sensors?: string;
+  achievements?: string;
   images: File[];
   previewUrls: string[];
 }
@@ -28,6 +35,12 @@ export default function UploadRobot() {
     motors: '',
     yearCreated: new Date().getFullYear().toString(),
     description: '',
+    mainBoard: '',
+    weight: '',
+    dimensions: '',
+    maxSpeed: '',
+    sensors: '',
+    achievements: '',
     images: [],
     previewUrls: [],
   });
@@ -114,6 +127,12 @@ export default function UploadRobot() {
       uploadFormData.append('motors', formData.motors);
       uploadFormData.append('yearCreated', formData.yearCreated);
       uploadFormData.append('description', formData.description);
+      uploadFormData.append('mainBoard', formData.mainBoard || '');
+      uploadFormData.append('weight', formData.weight || '');
+      uploadFormData.append('dimensions', formData.dimensions || '');
+      uploadFormData.append('maxSpeed', formData.maxSpeed || '');
+      uploadFormData.append('sensors', formData.sensors || '');
+      uploadFormData.append('achievements', formData.achievements || '');
       uploadFormData.append('submittedBy', username || '');
 
       formData.images.forEach((img, index) => {
@@ -141,6 +160,12 @@ export default function UploadRobot() {
         motors: '',
         yearCreated: new Date().getFullYear().toString(),
         description: '',
+        mainBoard: '',
+        weight: '',
+        dimensions: '',
+        maxSpeed: '',
+        sensors: '',
+        achievements: '',
         images: [],
         previewUrls: [],
       });
@@ -312,6 +337,103 @@ export default function UploadRobot() {
                 rows={4}
                 className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            {/* Especificaciones Adicionales */}
+            <div className="bg-gray-700 rounded p-4">
+              <h3 className="text-lg font-semibold text-white mb-4">Especificaciones Adicionales (Opcionales)</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Placa Electrónica */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Placa Electrónica
+                  </label>
+                  <input
+                    type="text"
+                    name="mainBoard"
+                    value={formData.mainBoard}
+                    onChange={handleInputChange}
+                    placeholder="Ej: XT-Prime"
+                    className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Peso */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Peso
+                  </label>
+                  <input
+                    type="text"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 490g"
+                    className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Dimensiones */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Dimensiones
+                  </label>
+                  <input
+                    type="text"
+                    name="dimensions"
+                    value={formData.dimensions}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 10cm x 10cm x 8cm"
+                    className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Velocidad Máxima */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Velocidad Máxima
+                  </label>
+                  <input
+                    type="text"
+                    name="maxSpeed"
+                    value={formData.maxSpeed}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 800 RPM"
+                    className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Sensores */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Sensores
+                  </label>
+                  <input
+                    type="text"
+                    name="sensors"
+                    value={formData.sensors}
+                    onChange={handleInputChange}
+                    placeholder="Ej: 5 x JS40F, 2 x QTR-1A"
+                    className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Logros */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Logros / Reconocimientos
+                  </label>
+                  <input
+                    type="text"
+                    name="achievements"
+                    value={formData.achievements}
+                    onChange={handleInputChange}
+                    placeholder="Ej: Campeón Nacional 2023"
+                    className="w-full px-4 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Imágenes */}
