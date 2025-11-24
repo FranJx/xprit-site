@@ -49,7 +49,8 @@ const sponsorPlans: SponsorPlan[] = [
       'Stickers y materiales con logo',
       'Mención en notas de prensa',
       'Descuento 15% en servicios de consultoría',
-      'Mención en eventos y competiciones'
+      'Mención en eventos y competiciones',
+      'Remera del equipo con logo (branding personalizado)'
     ],
     color: 'from-yellow-400 to-yellow-500',
     bgGradient: 'bg-gradient-to-br from-yellow-50 to-yellow-100'
@@ -319,6 +320,14 @@ export default function Sponsors() {
                 <tr className="border-b border-gray-700 hover:bg-gray-750 transition">
                   <td className="px-6 py-4 font-semibold text-gray-200">Logo en Robots</td>
                   {[false, false, true, true].map((included, idx) => (
+                    <td key={idx} className="px-6 py-4 text-center text-gray-300">
+                      {included ? <span className="text-green-400 font-bold">✓</span> : <span className="text-gray-500">—</span>}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-700 hover:bg-gray-750 transition">
+                  <td className="px-6 py-4 font-semibold text-gray-200">Remera del Equipo</td>
+                  {[false, true, true, true].map((included, idx) => (
                     <td key={idx} className="px-6 py-4 text-center text-gray-300">
                       {included ? <span className="text-green-400 font-bold">✓</span> : <span className="text-gray-500">—</span>}
                     </td>
