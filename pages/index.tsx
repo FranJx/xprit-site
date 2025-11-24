@@ -1,8 +1,27 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { getAllRobotsFromDB } from '../lib/content'
 
-export default function Home() {
+interface Robot {
+  slug: string
+  name: string
+  category: string
+  description: string
+  mainImage: string
+}
+
+export async function getStaticProps() {
+  const allRobots = await getAllRobotsFromDB()
+  // Take the first 3 robots for highlights
+  const robots = allRobots.slice(0, 3)
+  return {
+    props: { robots },
+    revalidate: 60, // Revalidate homepage less frequently
+  }
+}
+
+export default function Home({ robots }: { robots: Robot[] }) {
   return (
     <>
       <Head>
@@ -47,21 +66,31 @@ export default function Home() {
         <section className="py-24 px-6 bg-gray-800/50 border-t border-gray-700">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-4xl font-bold text-center mb-12">Robots destacados</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                { slug: 'tokio-xt', name: 'Tokio XT', category: 'Minisumo', desc: 'Campeón Nacional WRO 2023' },
-                { slug: 'seul-xt', name: 'Seúl XT', category: 'Velocistas', desc: 'Robot velocista con visión' },
-                { slug: 'predator-xt', name: 'Predator XT', category: 'Sumo', desc: 'Diseño agresivo de empuje' },
-              ].map((robot) => (
-                <Link key={robot.slug} href={`/robots/${robot.slug}`} className="group p-6 bg-gray-900 border border-gray-700 rounded-lg hover:border-cyan-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-105 cursor-pointer">
-                  <div className="w-full h-48 bg-gray-700/50 rounded mb-4 flex items-center justify-center group-hover:bg-gray-700 transition-colors">
-                    <span className="text-gray-500">{robot.category}</span>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2 text-cyan-300">{robot.name}</h3>
-                  <p className="text-gray-400 text-sm">{robot.desc}</p>
-                </Link>
-              ))}
-            </div>
+            {robots.length > 0 ? (
+              <div className="grid md:grid-cols-3 gap-8">
+                {robots.map((robot) => (
+                  <Link key={robot.slug} href={`/robots/${robot.slug}`} className="group p-6 bg-gray-900 border border-gray-700 rounded-lg hover:border-cyan-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-105 cursor-pointer">
+                    <div className="w-full h-48 bg-gray-700/50 rounded mb-4 flex items-center justify-center group-hover:bg-gray-700 transition-colors relative overflow-hidden">
+                      {robot.mainImage && (
+                        <Image
+                          src={robot.mainImage}
+                          alt={robot.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          unoptimized
+                        />
+                      )}
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-cyan-300">{robot.name}</h3>
+                    <p className="text-gray-400 text-sm">{robot.category}</p>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-400">
+                No hay robots aprobados todavía
+              </div>
+            )}
           </div>
         </section>
 
