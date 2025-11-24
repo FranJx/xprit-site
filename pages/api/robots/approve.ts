@@ -87,31 +87,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log(`✓ Metadata created: ${metadataPath}`);
 
-    // Create symlink or copy images from /public/content/robots/[slug] to /content/robots/[slug]
-    const publicRobotDir = path.join(process.cwd(), 'public/content/robots', robot.slug);
-    const publicImagesDir = path.join(publicRobotDir, 'images');
-    const contentImagesDir = path.join(robotDir, 'images');
-
-    console.log(`📸 Copying images from ${publicImagesDir} to ${contentImagesDir}`);
-
-    if (fs.existsSync(publicImagesDir)) {
-      await mkdir(contentImagesDir, { recursive: true });
-      const imageFiles = fs.readdirSync(publicImagesDir);
-      
-      for (const imageFile of imageFiles) {
-        const sourceFile = path.join(publicImagesDir, imageFile);
-        const destFile = path.join(contentImagesDir, imageFile);
-        const fileContent = fs.readFileSync(sourceFile);
-        await writeFile(destFile, fileContent);
-        console.log(`   ✓ Copied: ${imageFile}`);
-      }
-    }
-
-    // Delete robot submission from database
-    console.log(`🗑️ Deleting submission from database...`);
-    await prisma.robotSubmission.delete({
+    // Update robot status to approved in database (don't delete)
+    console.log(`✅ Marking robot as approved in database...`);
+    await prisma.robotSubmission.update({
       where: { id: robotId },
+      data: {
+        status: 'approved',
+        reviewedAt: new Date(),
+        reviewedBy: decoded.username,
+        comments: comments || '',
+      },
     });
+
+    console.log(`✓ Robot approved and saved to database`);
 
     return res.status(200).json({
       message: 'Robot approved successfully',

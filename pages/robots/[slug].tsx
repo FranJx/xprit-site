@@ -2,16 +2,20 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
-import { getAllRobots, getRobotBySlug, RobotData } from '../../lib/content'
+import { getRobotBySlugFromDB, getAllRobotsFromDB, RobotData } from '../../lib/content'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export async function getStaticPaths() {
-  const robots = getAllRobots()
+  // Get all approved robots from database
+  const robots = await getAllRobotsFromDB()
   const paths = robots.map(r => ({ params: { slug: r.slug } }))
   return { paths, fallback: 'blocking' }
 }
 
 export async function getStaticProps({ params }: { params: { slug: string } }) {
-  const robot = getRobotBySlug(params.slug)
+  const robot = await getRobotBySlugFromDB(params.slug)
   if (!robot) return { notFound: true }
   return { props: { robot }, revalidate: 60 }
 }
@@ -19,6 +23,7 @@ export async function getStaticProps({ params }: { params: { slug: string } }) {
 export default function RobotPage({ robot }: { robot: RobotData }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   
+  // Use photos array from DB (Cloudinary URLs)
   const gallery = robot.gallery && robot.gallery.length > 0 ? robot.gallery : [robot.mainImage]
   const currentImage = gallery[currentImageIndex]
   
@@ -34,7 +39,7 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
       <Head>
         <title>{robot.name} — XpriT Robotics</title>
         <meta name="description" content={robot.description} />
-        <meta property="og:image" content={`/content/robots/${robot.slug}/${robot.mainImage}`} />
+        <meta property="og:image" content={currentImage} />
       </Head>
 
       <main className="min-h-screen p-8">
@@ -52,11 +57,12 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
               <div className="w-full h-96 bg-gray-900 rounded relative overflow-hidden flex items-center justify-center group">
                 {currentImage && (
                   <Image
-                    src={`/content/robots/${robot.slug}/${currentImage}`}
+                    src={currentImage}
                     alt={robot.name}
                     fill
                     className="object-contain"
                     priority
+                    unoptimized
                   />
                 )}
                 
@@ -93,10 +99,11 @@ export default function RobotPage({ robot }: { robot: RobotData }) {
                       }`}
                     >
                       <Image
-                        src={`/content/robots/${robot.slug}/${img}`}
+                        src={img}
                         alt={`${robot.name} ${idx + 1}`}
                         fill
                         className="object-cover rounded"
+                        unoptimized
                       />
                     </button>
                   ))}

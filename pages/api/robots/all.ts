@@ -1,8 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 import prisma from '../../../lib/prisma';
-import fs from 'fs';
-import path from 'path';
 
 interface DecodedToken {
   username: string;
@@ -29,46 +27,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Get pending robots from database
-    const pendingRobots = await prisma.robotSubmission.findMany({
-      where: { status: 'pending' },
+    console.log(`📊 Loading all robots from database...`);
+
+    // Get all robots from database (pending OR approved), excluding deleted
+    const allRobots = await prisma.robotSubmission.findMany({
+      where: {
+        status: { in: ['pending', 'approved'] },
+      },
       orderBy: { submittedAt: 'desc' },
     });
 
-    // Get approved robots from /content/robots/ directory
-    const approvedRobots: any[] = [];
-    const robotsDir = path.join(process.cwd(), 'content/robots');
-
-    if (fs.existsSync(robotsDir)) {
-      const dirs = fs.readdirSync(robotsDir);
-      
-      for (const dir of dirs) {
-        const metadataPath = path.join(robotsDir, dir, 'metadata.json');
-        if (fs.existsSync(metadataPath)) {
-          try {
-            const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
-            const metadata = JSON.parse(metadataContent);
-            approvedRobots.push({
-              id: dir, // Use slug as ID for approved robots
-              slug: dir,
-              name: metadata.name,
-              category: metadata.category,
-              yearCreated: metadata.year,
-              description: metadata.description,
-              mainImage: metadata.mainImage,
-              photos: metadata.specs ? [] : [],
-              status: 'approved',
-              submittedBy: 'system',
-              submittedAt: new Date().toISOString(),
-            });
-          } catch (parseError) {
-            console.error(`Failed to parse metadata for ${dir}:`, parseError);
-          }
-        }
-      }
-    }
-
-    const allRobots = [...pendingRobots, ...approvedRobots];
+    console.log(`✓ Found ${allRobots.length} robots (${allRobots.filter(r => r.status === 'pending').length} pending, ${allRobots.filter(r => r.status === 'approved').length} approved)`);
 
     return res.status(200).json({
       message: 'Robots loaded',

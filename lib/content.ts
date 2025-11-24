@@ -1,7 +1,9 @@
 import fs from 'fs'
 import path from 'path'
+import { PrismaClient } from '@prisma/client'
 
 const contentDir = path.join(process.cwd(), 'content')
+const prisma = new PrismaClient()
 
 export interface RobotMetadata {
   slug: string
@@ -33,7 +35,76 @@ export interface NoticiaData extends NoticiasMetadata {
 }
 
 /**
- * Lee todos los robots desde content/robots/
+ * Lee todos los robots APROBADOS desde la base de datos
+ */
+export async function getAllRobotsFromDB(): Promise<RobotMetadata[]> {
+  try {
+    const robots = await prisma.robotSubmission.findMany({
+      where: { status: 'approved' },
+      orderBy: { submittedAt: 'desc' },
+    })
+    
+    return robots.map(r => ({
+      slug: r.slug,
+      name: r.name,
+      category: r.category || 'General',
+      year: r.yearCreated || new Date().getFullYear(),
+      description: r.description || '',
+      mainImage: r.mainImage || '/images/default.jpg',
+      features: r.sensors ? [r.sensors] : [],
+    }))
+  } catch (error) {
+    console.error('Error reading robots from DB:', error)
+    return []
+  }
+}
+
+/**
+ * Lee un robot APROBADO específico desde la base de datos
+ */
+export async function getRobotBySlugFromDB(slug: string): Promise<RobotData | null> {
+  try {
+    const robot = await prisma.robotSubmission.findUnique({
+      where: { slug },
+    })
+    
+    if (!robot || robot.status !== 'approved') {
+      return null
+    }
+    
+    // Construir specs desde los campos del robot
+    const specs: Array<{ label: string; value: string }> = []
+    
+    if (robot.category) specs.push({ label: 'Categoría', value: robot.category })
+    if (robot.mainBoard) specs.push({ label: 'Placa electrónica', value: robot.mainBoard })
+    if (robot.weight) specs.push({ label: 'Peso', value: robot.weight })
+    if (robot.dimensions) specs.push({ label: 'Dimensiones', value: robot.dimensions })
+    if (robot.maxSpeed) specs.push({ label: 'Velocidad máxima', value: robot.maxSpeed })
+    if (robot.sensors) specs.push({ label: 'Sensores', value: robot.sensors })
+    if (robot.battery) specs.push({ label: 'Batería', value: robot.battery })
+    if (robot.motors) specs.push({ label: 'Motores', value: robot.motors })
+    if (robot.achievements) specs.push({ label: 'Logros', value: robot.achievements })
+    
+    return {
+      slug: robot.slug,
+      name: robot.name,
+      category: robot.category || 'General',
+      year: robot.yearCreated || new Date().getFullYear(),
+      description: robot.description || '',
+      mainImage: robot.mainImage || '/images/default.jpg',
+      features: robot.sensors ? [robot.sensors] : [],
+      specs,
+      fullDescription: robot.description || '',
+      gallery: Array.isArray(robot.photos) ? robot.photos : [],
+    }
+  } catch (error) {
+    console.error('Error reading robot from DB:', error)
+    return null
+  }
+}
+
+/**
+ * Lee todos los robots desde content/robots/ (legacy filesystem)
  */
 export function getAllRobots(): RobotMetadata[] {
   const robotsDir = path.join(contentDir, 'robots')
@@ -56,7 +127,7 @@ export function getAllRobots(): RobotMetadata[] {
 }
 
 /**
- * Lee un robot específico con todas sus especificaciones
+ * Lee un robot específico con todas sus especificaciones (legacy filesystem)
  */
 export function getRobotBySlug(slug: string): RobotData | null {
   const robotDir = path.join(contentDir, 'robots', slug)
