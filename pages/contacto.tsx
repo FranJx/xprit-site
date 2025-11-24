@@ -1,7 +1,7 @@
 import Head from 'next/head'
 
 export default function Contacto() {
-  const handleMailtoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleMailtoClick = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     const name = (document.getElementById('name') as HTMLInputElement)?.value || '';
     const email = (document.getElementById('email') as HTMLInputElement)?.value || '';
     const subject = (document.getElementById('subject') as HTMLInputElement)?.value || '';
@@ -74,13 +74,13 @@ export default function Contacto() {
                   ></textarea>
                 </div>
 
-                <a
-                  href="#"
+                <button
+                  type="button"
                   onClick={handleMailtoClick}
-                  className="w-full block px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors text-center"
+                  className="w-full block px-6 py-3 bg-cyan-500 text-black font-semibold rounded-lg hover:bg-cyan-400 transition-colors text-center cursor-pointer"
                 >
                   📧 Enviar por email
-                </a>
+                </button>
               </form>
 
               <p className="text-sm text-gray-500 mt-4">
