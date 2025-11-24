@@ -10,9 +10,7 @@ interface SponsorPlan {
   icon: string;
   image: string;
   priceUSD: number;
-  priceARS: string;
   minDuration: string;
-  profile: string;
   benefits: string[];
   color: string;
   bgGradient: string;
@@ -26,9 +24,7 @@ const sponsorPlans: SponsorPlan[] = [
     icon: '⭐',
     image: '/images/sponsor-silver.svg',
     priceUSD: 50,
-    priceARS: '$80,000 - $100,000',
     minDuration: '3 meses',
-    profile: 'Pequeños negocios locales, influenciadores',
     benefits: [
       'Logo en página web (sección sponsors - pequeño)',
       'Mención en redes sociales (1x/mes)',
@@ -46,9 +42,7 @@ const sponsorPlans: SponsorPlan[] = [
     icon: '🏆',
     image: '/images/sponsor-gold.svg',
     priceUSD: 150,
-    priceARS: '$250,000 - $300,000',
     minDuration: '3 meses',
-    profile: 'Empresas medianas locales, PyMEs tecnológicas',
     benefits: [
       'Logo en página web (sección sponsors - medio)',
       'Menciones en redes sociales (2-3x/semana)',
@@ -67,9 +61,7 @@ const sponsorPlans: SponsorPlan[] = [
     icon: '💎',
     image: '/images/sponsor-platinum.svg',
     priceUSD: 300,
-    priceARS: '$500,000 - $600,000',
     minDuration: '6 meses',
-    profile: 'Empresas grandes regionales, marcas locales',
     benefits: [
       'Logo prominente en página web (sección sponsors - grande)',
       'Menciones diarias en redes sociales + historias destacadas',
@@ -94,9 +86,7 @@ const sponsorPlans: SponsorPlan[] = [
     icon: '👑',
     image: '/images/sponsor-diamond.svg',
     priceUSD: 500,
-    priceARS: '$800,000+',
     minDuration: '12 meses',
-    profile: 'Corporaciones, universidades, gobiernos provinciales',
     benefits: [
       'Logo prominente en homepage de XpriT',
       'Mención prioritaria en redes sociales (múltiples posts/día)',
@@ -233,7 +223,6 @@ export default function Sponsors() {
                     <div className="text-4xl mb-2">{plan.icon}</div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-1">{plan.name}</h3>
                     <p className="text-sm text-gray-700 font-semibold mb-3">{plan.subtitle}</p>
-                    <p className="text-xs text-gray-600">{plan.profile}</p>
                   </div>
 
                   {/* Precio */}
@@ -241,7 +230,6 @@ export default function Sponsors() {
                     <div className="text-3xl font-bold text-gray-900 mb-1">
                       USD ${plan.priceUSD}
                     </div>
-                    <div className="text-sm text-gray-600">{plan.priceARS}/mes</div>
                     <div className="text-xs text-gray-500 mt-2">Mínimo: {plan.minDuration}</div>
                   </div>
 
