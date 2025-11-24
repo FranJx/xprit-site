@@ -76,23 +76,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log(`📝 Robot slug: ${slug}`);
 
-    // Create directory structure in /public/content/robots/
-    const robotDir = path.join(process.cwd(), 'public/content/robots', slug);
-    const imagesDir = path.join(robotDir, 'images');
+    // Create directory structure in BOTH locations:
+    // 1. /public/content/robots/ (for browser access during development)
+    // 2. /content/robots/ (for production/static rendering)
+    
+    const publicRobotDir = path.join(process.cwd(), 'public/content/robots', slug);
+    const publicImagesDir = path.join(publicRobotDir, 'images');
+    const contentRobotDir = path.join(process.cwd(), 'content/robots', slug);
+    const contentImagesDir = path.join(contentRobotDir, 'images');
 
     console.log(`📁 Creating directories...`);
-    console.log(`   - Robot dir: ${robotDir}`);
-    console.log(`   - Images dir: ${imagesDir}`);
+    console.log(`   - Public robot dir: ${publicRobotDir}`);
+    console.log(`   - Content robot dir: ${contentRobotDir}`);
 
     try {
-      await mkdir(imagesDir, { recursive: true });
-      console.log(`✓ Directories created successfully`);
+      await mkdir(publicImagesDir, { recursive: true });
+      await mkdir(contentImagesDir, { recursive: true });
+      console.log(`✓ All directories created successfully`);
     } catch (mkdirError) {
       console.error('❌ Failed to create directories:', mkdirError);
       return res.status(500).json({ message: 'Failed to create directories' });
     }
 
-    // Save images
+    // Save images to BOTH locations
     const imageUrls: string[] = [];
     const imageFiles = Array.isArray(files.images) ? files.images : [files.images];
 
@@ -104,22 +110,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Generate unique filename
         const ext = path.extname(file.originalFilename || '.jpg');
         const filename = `img-${i + 1}${ext}`;
-        const filepath = path.join(imagesDir, filename);
+        
+        const publicFilepath = path.join(publicImagesDir, filename);
+        const contentFilepath = path.join(contentImagesDir, filename);
 
         console.log(`   - Saving image ${i + 1}: ${filename}`);
 
-        // Read from temp location and write to final location
+        // Read from temp location
         const fileContent = fs.readFileSync(file.filepath);
-        await writeFile(filepath, fileContent);
+        
+        // Write to both locations
+        await writeFile(publicFilepath, fileContent);
+        await writeFile(contentFilepath, fileContent);
 
-        // Verify file exists
-        if (fs.existsSync(filepath)) {
-          const stats = fs.statSync(filepath);
-          console.log(`   ✓ Saved successfully (${stats.size} bytes)`);
-          // Store relative path from public
+        // Verify both files exist
+        if (fs.existsSync(publicFilepath) && fs.existsSync(contentFilepath)) {
+          const stats = fs.statSync(publicFilepath);
+          console.log(`   ✓ Saved successfully to both locations (${stats.size} bytes)`);
+          // Use /content/ path for storage (works in both dev and production)
           imageUrls.push(`/content/robots/${slug}/images/${filename}`);
         } else {
-          console.error(`   ❌ File not found after save: ${filepath}`);
+          console.error(`   ❌ File not found after save`);
+          if (!fs.existsSync(publicFilepath)) console.error(`      - Missing in public: ${publicFilepath}`);
+          if (!fs.existsSync(contentFilepath)) console.error(`      - Missing in content: ${contentFilepath}`);
         }
       } catch (fileError) {
         console.error(`   ❌ Error saving image:`, fileError);
@@ -151,7 +164,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         maxSpeed: maxSpeed || null,
         sensors: sensors || null,
         achievements: achievements || null,
-        mainImage: imageUrls[0] || null,
+        // Use full public path for images
+        mainImage: imageUrls[0] ? imageUrls[0] : null,
         photos: imageUrls.slice(1),
         status: 'pending',
         submittedBy: submittedBy || decoded.username,
