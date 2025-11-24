@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getAllRobotsFromDB, getAllRobots } from '../lib/content'
+import { getAllRobotsFromDB } from '../lib/content'
 
 interface Robot {
   slug: string
@@ -12,14 +12,8 @@ interface Robot {
 }
 
 export async function getStaticProps() {
-  // Intenta cargar robots desde BD
-  let allRobots = await getAllRobotsFromDB()
-  
-  // Si no hay en BD, carga del filesystem (legacy)
-  if (!allRobots || allRobots.length === 0) {
-    console.log('🤖 Loading robots for homepage from filesystem (database unavailable or empty)')
-    allRobots = getAllRobots()
-  }
+  // Solo carga robots desde BD - sin fallback al filesystem
+  const allRobots = await getAllRobotsFromDB()
   
   // Take the first 3 robots for highlights
   const robots = allRobots.slice(0, 3)
