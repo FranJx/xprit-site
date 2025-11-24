@@ -1,0 +1,9 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Persona con aceleración -->
+  <circle cx="35" cy="25" r="8"/>
+  <path d="M 30 35 L 40 35 L 42 50 L 28 50 Z"/>
+  <line x1="35" y1="50" x2="30" y2="65"/>
+  <line x1="35" y1="50" x2="40" y2="65"/>
+  <!-- Flecha de crecimiento -->
+  <path d="M 55 70 L 75 50 L 70 50 L 70 30 L 80 30 L 75 20 L 70 30 L 60 30 L 60 50 L 55 50 Z" fill="currentColor"/>
+</svg>

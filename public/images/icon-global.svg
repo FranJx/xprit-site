@@ -1,0 +1,10 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Globo terráqueo -->
+  <circle cx="50" cy="50" r="28"/>
+  <path d="M 22 50 Q 50 40 78 50 Q 50 60 22 50" fill="none"/>
+  <path d="M 50 22 Q 45 50 50 78 M 50 22 Q 55 50 50 78"/>
+  <!-- Señal de transmisión -->
+  <circle cx="75" cy="25" r="3" fill="currentColor"/>
+  <path d="M 80 25 Q 85 20 90 15"/>
+  <path d="M 80 25 Q 87 15 95 5"/>
+</svg>
