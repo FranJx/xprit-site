@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getAllRobots } from '../lib/content'
+import { getAllRobotsFromDB } from '../lib/content'
 
 interface Robot {
   slug: string
@@ -13,7 +13,7 @@ interface Robot {
 }
 
 export async function getStaticProps() {
-  const robots = getAllRobots()
+  const robots = await getAllRobotsFromDB()
   return {
     props: { robots },
     revalidate: 60, // Re-generar cada 60 segundos
@@ -55,10 +55,11 @@ export default function RobotsPage({ robots }: { robots: Robot[] }) {
                     <div className="w-full h-48 bg-gray-700/50 flex items-center justify-center group-hover:bg-gray-700 transition-colors relative">
                       {robot.mainImage && (
                         <Image
-                          src={`/content/robots/${robot.slug}/${robot.mainImage}`}
+                          src={robot.mainImage}
                           alt={robot.name}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          unoptimized
                         />
                       )}
                     </div>
