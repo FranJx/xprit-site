@@ -61,8 +61,8 @@ export default function BoardsPage() {
       id: 'minisumo-pro',
       name: 'Minisumo Pro',
       category: 'Sumo',
-      closedImage: '/images/default.jpg',
-      openImage: '/images/default.jpg',
+      closedImage: '/images/minisumo-closed.webp',
+      openImage: '/images/minisumo-open.webp',
       specs: {
         processor: 'ARM Cortex-M4 @ 168MHz',
         memory: '192 KB RAM + 1 MB Flash',
@@ -74,8 +74,8 @@ export default function BoardsPage() {
       id: 'velocista-pro',
       name: 'Velocista Pro',
       category: 'Velocidad',
-      closedImage: '/images/default.jpg',
-      openImage: '/images/default.jpg',
+      closedImage: '/images/velocista-closed.webp',
+      openImage: '/images/velocista-open.webp',
       specs: {
         processor: 'ARM Cortex-M7 @ 216MHz',
         memory: '256 KB RAM + 2 MB Flash',
@@ -87,8 +87,8 @@ export default function BoardsPage() {
       id: 'laberinto-pro',
       name: 'Laberinto Pro',
       category: 'Laberinto',
-      closedImage: '/images/default.jpg',
-      openImage: '/images/default.jpg',
+      closedImage: '/images/laberinto-closed.webp',
+      openImage: '/images/laberinto-open.webp',
       specs: {
         processor: 'ARM Cortex-M4 @ 168MHz',
         memory: '192 KB RAM + 1 MB Flash',
@@ -278,7 +278,7 @@ turn_left(600)`,
               >
                 <div className="w-full max-w-sm h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-gray-700 flex items-center justify-center relative overflow-hidden shadow-2xl shadow-cyan-500/20">
                   <Image
-                    src="/images/default.jpg"
+                    src="/images/board-hero.webp"
                     alt="Placa XpriT"
                     fill
                     className="object-cover"
@@ -425,7 +425,7 @@ turn_left(600)`,
                 {' '}
                 {/* 16:9 aspect ratio */}
                 <Image
-                  src="/images/default.jpg"
+                  src="/images/board-specs.webp"
                   alt="Placa XpriT - Especificaciones"
                   fill
                   className="object-cover"

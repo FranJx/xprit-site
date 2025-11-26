@@ -1,0 +1,69 @@
+<svg viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg" width="480" height="360">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f0f1e;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="robotGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#00d4ff;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="480" height="360" fill="url(#bgGrad)"/>
+  <circle cx="240" cy="180" r="150" fill="url(#robotGlow)"/>
+
+  <!-- VELOCISTA ROBOT - CLOSED STATE (Aerodinámico) -->
+  <g transform="translate(240, 160)">
+    <!-- Cuerpo aerodinámico (ovalado) -->
+    <ellipse cx="0" cy="0" rx="85" ry="55" fill="#1a2a3a" stroke="#00d4ff" stroke-width="3"/>
+    <ellipse cx="0" cy="0" rx="82" ry="52" fill="#2a3a4a"/>
+    
+    <!-- Nose cone frontal -->
+    <path d="M 82 -20 L 95 -10 L 95 10 L 82 20 Z" fill="#00d4ff" opacity="0.4"/>
+    
+    <!-- Shiny top -->
+    <ellipse cx="-10" cy="-35" rx="45" ry="20" fill="#00d4ff" opacity="0.25"/>
+    
+    <!-- Rueda frontal izquierda -->
+    <g transform="translate(-50, -30)">
+      <circle r="24" fill="#0a0a0a" stroke="#00d4ff" stroke-width="2"/>
+      <circle r="21" fill="#1a1a2a"/>
+      <circle r="6" fill="#00d4ff" opacity="0.4"/>
+    </g>
+    
+    <!-- Rueda frontal derecha -->
+    <g transform="translate(50, -30)">
+      <circle r="24" fill="#0a0a0a" stroke="#00d4ff" stroke-width="2"/>
+      <circle r="21" fill="#1a1a2a"/>
+      <circle r="6" fill="#00d4ff" opacity="0.4"/>
+    </g>
+    
+    <!-- Rueda trasera izquierda -->
+    <g transform="translate(-55, 35)">
+      <circle r="20" fill="#0a0a0a" stroke="#00d4ff" stroke-width="2"/>
+      <circle r="18" fill="#1a1a2a"/>
+      <circle r="5" fill="#00d4ff" opacity="0.4"/>
+    </g>
+    
+    <!-- Rueda trasera derecha -->
+    <g transform="translate(55, 35)">
+      <circle r="20" fill="#0a0a0a" stroke="#00d4ff" stroke-width="2"/>
+      <circle r="18" fill="#1a1a2a"/>
+      <circle r="5" fill="#00d4ff" opacity="0.4"/>
+    </g>
+    
+    <!-- Sensor frontal -->
+    <g transform="translate(0, -52)">
+      <circle cx="-12" cy="0" r="6" fill="#ff6600"/>
+      <circle cx="12" cy="0" r="6" fill="#ff6600"/>
+    </g>
+    
+    <!-- LED indicador -->
+    <circle cx="0" cy="-5" r="5" fill="#00d4ff"/>
+  </g>
+
+  <!-- Etiqueta -->
+  <text x="240" y="310" font-family="Arial" font-size="16" fill="#00d4ff" text-anchor="middle" font-weight="bold">Velocista Pro</text>
+  <text x="240" y="335" font-family="Arial" font-size="12" fill="#888" text-anchor="middle">Vista Cerrada</text>
+</svg>

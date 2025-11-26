@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockups de Imágenes - Boards Landing Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #111;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #00d4ff;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00d4ff;
+        }
+
+        .section-description {
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* HERO IMAGE */
+        .hero-mockup {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #00d4ff;
+            border-radius: 12px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .hero-mockup::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(45deg, transparent 45%, rgba(0, 212, 255, 0.1) 45%, rgba(0, 212, 255, 0.1) 55%, transparent 55%),
+                linear-gradient(-45deg, transparent 45%, rgba(0, 212, 255, 0.1) 45%, rgba(0, 212, 255, 0.1) 55%, transparent 55%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .hero-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .hero-text {
+            font-size: 1.3rem;
+            color: #00d4ff;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* CARDS GRID */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card-pair {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-mockup {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #00d4ff;
+            border-radius: 12px;
+            aspect-ratio: 16 / 10;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card-mockup:hover {
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .card-mockup::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: 
+                linear-gradient(45deg, transparent 30%, rgba(0, 212, 255, 0.08) 30%, rgba(0, 212, 255, 0.08) 70%, transparent 70%),
+                linear-gradient(-45deg, transparent 30%, rgba(0, 212, 255, 0.08) 30%, rgba(0, 212, 255, 0.08) 70%, transparent 70%);
+            background-size: 40px 40px;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: #00d4ff;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .card-state {
+            font-size: 0.85rem;
+            color: #888;
+            font-style: italic;
+        }
+
+        .card-label {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 12px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #00d4ff;
+        }
+
+        /* BOARD IMAGE */
+        .board-mockup {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid #00d4ff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 1000px;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .board-mockup::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            border-radius: 12px;
+        }
+
+        .board-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .board-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+
+        .board-text {
+            font-size: 1.4rem;
+            color: #00d4ff;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .board-subtext {
+            font-size: 0.95rem;
+            color: #888;
+        }
+
+        /* SPECIFICATIONS */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .spec-item {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.9rem;
+        }
+
+        .spec-label {
+            color: #00d4ff;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .spec-value {
+            color: #aaa;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* HOTSPOTS DIAGRAM */
+        .hotspots-section {
+            margin-top: 30px;
+        }
+
+        .hotspot-info {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .hotspot-title {
+            color: #00d4ff;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .hotspot-positions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .hotspot-item {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid #00d4ff;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .hotspot-pos {
+            color: #888;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        .hotspot-name {
+            color: #00d4ff;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        /* COMPARISON TABLE */
+        .comparison {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            border-bottom: 1px solid #00d4ff;
+        }
+
+        .comparison-row:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-cell {
+            padding: 15px;
+            border-right: 1px solid #00d4ff;
+        }
+
+        .comparison-row:last-child .comparison-cell:last-child {
+            border-right: none;
+        }
+
+        .comparison-cell:last-child {
+            border-right: none;
+        }
+
+        .comparison-header {
+            background: rgba(0, 212, 255, 0.15);
+            font-weight: 600;
+            color: #00d4ff;
+        }
+
+        .comparison-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .comparison-value {
+            color: #00d4ff;
+            font-weight: 500;
+        }
+
+        /* TIPS */
+        .tips {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .tips h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+
+        .tips ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips li {
+            color: #aaa;
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .tips li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .responsive-info {
+            background: rgba(255, 159, 0, 0.1);
+            border: 1px solid #ff9f00;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #ff9f00;
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-row {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-cell {
+                border-right: none;
+                border-bottom: 1px solid #00d4ff;
+            }
+
+            .comparison-row:last-child .comparison-cell:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Mockups - Imágenes para Boards Landing Page</h1>
+        <p class="subtitle">Guía visual de cómo deberían verse las imágenes que necesitas diseñar</p>
+
+        <!-- SECTION 1: HERO IMAGE -->
+        <div class="section">
+            <h2 class="section-title">1️⃣ HERO IMAGE (Placa Principal)</h2>
+            <p class="section-description">
+                Esta es la imagen que aparece en el hero section al lado del tagline "Una placa. Infinidad de robots."
+                Se anima con rotación suave (0° → 18°) al scrollear. Debe ser una foto profesional de la placa desde un ángulo frontal con buena iluminación.
+            </p>
+
+            <div class="hero-mockup">
+                <div class="hero-content">
+                    <div class="hero-icon">📱</div>
+                    <div class="hero-text">PLACA HERO<br>(1920×1080)</div>
+                </div>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <div class="spec-label">📐 Dimensiones</div>
+                    <div class="spec-value">1920 × 1080 px</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">📦 Peso máximo</div>
+                    <div class="spec-value">≤800 KB</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">🖼️ Formatos</div>
+                    <div class="spec-value">WebP + AVIF</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">⚙️ Ángulo</div>
+                    <div class="spec-value">Frontal isométrico (45°)</div>
+                </div>
+            </div>
+
+            <div class="tips">
+                <h3>💡 Tips de diseño</h3>
+                <ul>
+                    <li>Foto profesional con buen fondo (studio o gradiente)</li>
+                    <li>Buena iluminación que resalte componentes</li>
+                    <li>Ángulo isométrico 45° para ver más detalles</li>
+                    <li>Fondo puede ser neutral o con gradiente sutil (negro → gris oscuro)</li>
+                    <li>Incluir sombra suave debajo de la placa para profundidad</li>
+                    <li>Considerar efecto de halo o glow azul/cian para futurismo</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 2: ROBOT CARDS -->
+        <div class="section">
+            <h2 class="section-title">2️⃣ ROBOT CONFIGURATION CARDS (3 Parejas)</h2>
+            <p class="section-description">
+                Cada robot tiene 2 versiones de imagen:
+                <br><strong>CLOSED (Cerrada):</strong> Robot armado, vista general
+                <br><strong>OPEN (Abierta/Explotada):</strong> Vista explotada mostrando la placa + componentes
+            </p>
+
+            <!-- MINISUMO PRO -->
+            <h3 style="color: #00d4ff; margin-top: 35px; margin-bottom: 15px;">🤖 MINISUMO PRO</h3>
+            <div class="cards-grid">
+                <div class="card-pair">
+                    <div>
+                        <div style="color: #888; font-size: 0.9rem; margin-bottom: 8px;">✓ ESTADO CERRADO (Default)</div>
+                        <div class="card-mockup">
+                            <div class="card-content">
+                                <div class="card-icon">🎯</div>
+                                <div class="card-title">Minisumo Pro</div>
+                                <div class="card-state">Vista Cerrada (Armado)</div>
+                                <div class="card-label">480×360 px</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="color: #888; font-size: 0.9rem; margin-bottom: 8px;">✗ ESTADO ABIERTO (Hover/Tap)</div>
+                        <div class="card-mockup">
+                            <div class="card-content">
+                                <div class="card-icon">🔧</div>
+                                <div class="card-title">Minisumo Pro</div>
+                                <div class="card-state">Vista Explotada (Componentes)</div>
+                                <div class="card-label">480×360 px</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <div class="spec-label">📐 Dimensiones</div>
+                    <div class="spec-value">480 × 360 px c/u</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">📦 Peso máximo</div>
+                    <div class="spec-value">≤150 KB c/u</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">🎨 Fondo</div>
+                    <div class="spec-value">Transparente (PNG) o gradiente</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">⏱️ Transición</div>
+                    <div class="spec-value">Fade 400ms entre estados</div>
+                </div>
+            </div>
+
+            <div class="responsive-info">
+                <strong>📱 Responsive:</strong> En mobile, las imágenes pueden ser ligeramente más pequeñas (380×285 px) y la transición se activa al TAP, no al hover.
+            </div>
+
+            <!-- VELOCISTA PRO -->
+            <h3 style="color: #00d4ff; margin-top: 35px; margin-bottom: 15px;">🏃 VELOCISTA PRO</h3>
+            <div class="cards-grid">
+                <div class="card-pair">
+                    <div>
+                        <div style="color: #888; font-size: 0.9rem; margin-bottom: 8px;">✓ ESTADO CERRADO (Default)</div>
+                        <div class="card-mockup">
+                            <div class="card-content">
+                                <div class="card-icon">⚡</div>
+                                <div class="card-title">Velocista Pro</div>
+                                <div class="card-state">Vista Cerrada (Armado)</div>
+                                <div class="card-label">480×360 px</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="color: #888; font-size: 0.9rem; margin-bottom: 8px;">✗ ESTADO ABIERTO (Hover/Tap)</div>
+                        <div class="card-mockup">
+                            <div class="card-content">
+                                <div class="card-icon">💡</div>
+                                <div class="card-title">Velocista Pro</div>
+                                <div class="card-state">Vista Explotada (Componentes)</div>
+                                <div class="card-label">480×360 px</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LABERINTO PRO -->
+            <h3 style="color: #00d4ff; margin-top: 35px; margin-bottom: 15px;">🌀 LABERINTO PRO</h3>
+            <div class="cards-grid">
+                <div class="card-pair">
+                    <div>
+                        <div style="color: #888; font-size: 0.9rem; margin-bottom: 8px;">✓ ESTADO CERRADO (Default)</div>
+                        <div class="card-mockup">
+                            <div class="card-content">
+                                <div class="card-icon">🧩</div>
+                                <div class="card-title">Laberinto Pro</div>
+                                <div class="card-state">Vista Cerrada (Armado)</div>
+                                <div class="card-label">480×360 px</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="color: #888; font-size: 0.9rem; margin-bottom: 8px;">✗ ESTADO ABIERTO (Hover/Tap)</div>
+                        <div class="card-mockup">
+                            <div class="card-content">
+                                <div class="card-icon">🔍</div>
+                                <div class="card-title">Laberinto Pro</div>
+                                <div class="card-state">Vista Explotada (Componentes)</div>
+                                <div class="card-label">480×360 px</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tips">
+                <h3>💡 Tips de diseño para Cards</h3>
+                <ul>
+                    <li><strong>Estado Cerrado:</strong> Robot completo/armado, vista general clara</li>
+                    <li><strong>Estado Abierto:</strong> Vista explotada con la placa destacada en el centro y componentes alrededor</li>
+                    <li>Usar colores consistentes: placa = cian/azul, componentes = plata/gris</li>
+                    <li>Sombras y perspectiva para dar profundidad en vista explotada</li>
+                    <li>Usar fondo transparente (PNG) para máxima flexibilidad</li>
+                    <li>Mantener el mismo ángulo/escala en ambas versiones</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 3: BOARD SPECIFICATIONS IMAGE -->
+        <div class="section">
+            <h2 class="section-title">3️⃣ BOARD SPECIFICATIONS (Imagen interactiva)</h2>
+            <p class="section-description">
+                Esta es la imagen del board completo que aparece en la sección "Especificaciones Técnicas".
+                Tendrá 5 hotspots interactivos que muestran información de componentes al hover/click.
+            </p>
+
+            <div class="board-mockup">
+                <div class="board-content">
+                    <div class="board-icon">🔌</div>
+                    <div class="board-text">PLACA CON COMPONENTES</div>
+                    <div class="board-subtext">(1600×900 px con puntos de hotspot)</div>
+                </div>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <div class="spec-label">📐 Dimensiones</div>
+                    <div class="spec-value">1600 × 900 px</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">📦 Peso máximo</div>
+                    <div class="spec-value">≤700 KB</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">🎨 Aspecto</div>
+                    <div class="spec-value">16:9 (landscape)</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">🎯 Hotspots</div>
+                    <div class="spec-value">5 puntos interactivos</div>
+                </div>
+            </div>
+
+            <div class="hotspots-section">
+                <div class="hotspot-info">
+                    <div class="hotspot-title">🎯 PUNTOS DE HOTSPOT (5 Componentes)</div>
+                    <div class="hotspot-positions">
+                        <div class="hotspot-item">
+                            <div class="hotspot-name">1. Procesador</div>
+                            <div class="hotspot-pos">X: 15% | Y: 25%</div>
+                        </div>
+                        <div class="hotspot-item">
+                            <div class="hotspot-name">2. Regulador</div>
+                            <div class="hotspot-pos">X: 45% | Y: 20%</div>
+                        </div>
+                        <div class="hotspot-item">
+                            <div class="hotspot-name">3. Conector CAN</div>
+                            <div class="hotspot-pos">X: 75% | Y: 30%</div>
+                        </div>
+                        <div class="hotspot-item">
+                            <div class="hotspot-name">4. GPIO</div>
+                            <div class="hotspot-pos">X: 30% | Y: 70%</div>
+                        </div>
+                        <div class="hotspot-item">
+                            <div class="hotspot-name">5. Depuración</div>
+                            <div class="hotspot-pos">X: 70% | Y: 75%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tips">
+                <h3>💡 Tips de diseño para Board Specs</h3>
+                <ul>
+                    <li>Foto clara de la placa vista desde arriba/isométrica</li>
+                    <li>Todos los componentes principales visibles y etiquetados</li>
+                    <li>Buena iluminación que destaque cada componente</li>
+                    <li>Fondo limpio (blanco o gris claro) para contrastar</li>
+                    <li>Los hotspots NO tienen que ser visibles en la imagen base - se agregan dinámicamente en el código</li>
+                    <li>Las posiciones (%) son calculadas dentro del contenedor - verifica espacios de componentes</li>
+                    <li>Puedes ajustar las coordenadas X/Y después si es necesario</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECTION 4: COMPARISON TABLE -->
+        <div class="section">
+            <h2 class="section-title">📊 RESUMEN DE ESPECIFICACIONES</h2>
+
+            <div class="comparison">
+                <div class="comparison-row comparison-header">
+                    <div class="comparison-cell">Imagen</div>
+                    <div class="comparison-cell">Dimensiones</div>
+                    <div class="comparison-cell">Peso Máx.</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Hero Image</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">1920 × 1080 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤800 KB</div>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Minisumo Closed</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">480 × 360 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤150 KB</div>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Minisumo Open</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">480 × 360 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤150 KB</div>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Velocista Closed</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">480 × 360 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤150 KB</div>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Velocista Open</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">480 × 360 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤150 KB</div>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Laberinto Closed</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">480 × 360 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤150 KB</div>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Laberinto Open</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">480 × 360 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤150 KB</div>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell">
+                        <div class="comparison-label">Board Specs</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">1600 × 900 px</div>
+                    </div>
+                    <div class="comparison-cell">
+                        <div class="comparison-value">≤700 KB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: NAMING CONVENTION -->
+        <div class="section">
+            <h2 class="section-title">📁 Convención de Nombres de Archivos</h2>
+            <p class="section-description">
+                Cuando exportes las imágenes, usa estos nombres exactos para que se carguen correctamente en el sitio:
+            </p>
+
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <div class="spec-label">Hero</div>
+                    <div class="spec-value">board-hero.webp</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Minisumo Cerrada</div>
+                    <div class="spec-value">minisumo-closed.webp</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Minisumo Abierta</div>
+                    <div class="spec-value">minisumo-open.webp</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Velocista Cerrada</div>
+                    <div class="spec-value">velocista-closed.webp</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Velocista Abierta</div>
+                    <div class="spec-value">velocista-open.webp</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Laberinto Cerrada</div>
+                    <div class="spec-value">laberinto-closed.webp</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Laberinto Abierta</div>
+                    <div class="spec-value">laberinto-open.webp</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Board Specs</div>
+                    <div class="spec-value">board-specs.webp</div>
+                </div>
+            </div>
+
+            <div class="tips">
+                <h3>💡 Instrucciones de carga</h3>
+                <ul>
+                    <li>Exporta las imágenes en WebP (mejor compresión)</li>
+                    <li>Si necesitas version AVIF también, exporta en ambos formatos</li>
+                    <li>Coloca todas las imágenes en: <code style="background: #000; padding: 2px 6px; border-radius: 3px;">/public/images/</code></li>
+                    <li>El código las cargará automáticamente con <code style="background: #000; padding: 2px 6px; border-radius: 3px;">next/image</code> para optimización</li>
+                    <li>Verifica los pesos antes de subir (no deben exceder los máximos)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- FOOTER TIPS -->
+        <div class="section">
+            <div class="tips">
+                <h3>🚀 Próximos pasos después de exportar imágenes</h3>
+                <ul>
+                    <li>Exporta todas las 8 imágenes en WebP (y opcionalmente AVIF)</li>
+                    <li>Colócalas en <code style="background: #000; padding: 2px 6px; border-radius: 3px;">/public/images/</code></li>
+                    <li>Actualiza el código en <code style="background: #000; padding: 2px 6px; border-radius: 3px;">pages/boards.tsx</code> reemplazando las rutas de placeholder</li>
+                    <li>Ejecuta <code style="background: #000; padding: 2px 6px; border-radius: 3px;">npm run build</code> para verificar que todo se carga</li>
+                    <li>Prueba en mobile y desktop</li>
+                    <li>Commit, push y deploy a Railway</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

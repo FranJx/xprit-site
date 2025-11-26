@@ -1,0 +1,90 @@
+<svg viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg" width="480" height="360">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f0f1e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="480" height="360" fill="url(#bgGrad)"/>
+
+  <!-- LABERINTO ROBOT - OPEN STATE (Explotado) -->
+  
+  <!-- PLACA CENTRAL -->
+  <g transform="translate(240, 180)">
+    <rect x="-65" y="-45" width="130" height="90" fill="#1a3a5a" stroke="#00d4ff" stroke-width="2" rx="4"/>
+    <rect x="-60" y="-40" width="120" height="18" fill="#00d4ff" opacity="0.3"/>
+    
+    <!-- Microcontrolador -->
+    <circle cx="-35" cy="-20" r="12" fill="#ff9f00" opacity="0.8"/>
+    <!-- Regulador -->
+    <circle cx="35" cy="-20" r="10" fill="#ff9f00" opacity="0.8"/>
+    <!-- Conectores -->
+    <circle cx="-45" cy="15" r="5" fill="#00d4ff" opacity="0.6"/>
+    <circle cx="45" cy="15" r="5" fill="#00d4ff" opacity="0.6"/>
+  </g>
+
+  <!-- SENSOR DE LÍNEA (separado) -->
+  <g transform="translate(240, 60)">
+    <rect x="-50" y="-12" width="100" height="24" fill="#0a1a2a" stroke="#ff6600" stroke-width="1" rx="2"/>
+    <circle cx="-25" cy="0" r="6" fill="#ff6600" opacity="0.8"/>
+    <circle cx="0" cy="0" r="6" fill="#ff6600" opacity="0.8"/>
+    <circle cx="25" cy="0" r="6" fill="#ff6600" opacity="0.8"/>
+  </g>
+
+  <!-- MOTOR IZQUIERDO -->
+  <g transform="translate(80, 140)">
+    <rect x="-20" y="-35" width="40" height="70" fill="#0a1a2a" stroke="#ff6600" stroke-width="2" rx="2"/>
+    <circle cx="0" cy="0" r="17" fill="#1a2a3a" stroke="#ff6600" stroke-width="1"/>
+    <circle cx="0" cy="0" r="12" fill="#000" opacity="0.5"/>
+  </g>
+
+  <!-- MOTOR DERECHO -->
+  <g transform="translate(400, 140)">
+    <rect x="-20" y="-35" width="40" height="70" fill="#0a1a2a" stroke="#ff6600" stroke-width="2" rx="2"/>
+    <circle cx="0" cy="0" r="17" fill="#1a2a3a" stroke="#ff6600" stroke-width="1"/>
+    <circle cx="0" cy="0" r="12" fill="#000" opacity="0.5"/>
+  </g>
+
+  <!-- RUEDAS -->
+  <g transform="translate(60, 260)">
+    <circle r="20" fill="#0a0a0a" stroke="#00d4ff" stroke-width="2"/>
+    <circle r="17" fill="#1a1a2a"/>
+    <circle r="7" fill="#333" opacity="0.6"/>
+  </g>
+
+  <g transform="translate(420, 260)">
+    <circle r="20" fill="#0a0a0a" stroke="#00d4ff" stroke-width="2"/>
+    <circle r="17" fill="#1a1a2a"/>
+    <circle r="7" fill="#333" opacity="0.6"/>
+  </g>
+
+  <!-- RUEDA CASTER -->
+  <g transform="translate(240, 290)">
+    <circle r="14" fill="#0a0a0a" stroke="#00d4ff" stroke-width="1.5"/>
+    <circle r="12" fill="#1a1a2a"/>
+    <circle r="5" fill="#333" opacity="0.5"/>
+  </g>
+
+  <!-- BATERÍA/POWER (separada) -->
+  <g transform="translate(350, 90)">
+    <rect x="-18" y="-28" width="36" height="56" fill="#1a1a1a" stroke="#ff9f00" stroke-width="1.5" rx="3"/>
+    <rect x="-15" y="-24" width="30" height="8" fill="#ff9f00" opacity="0.4"/>
+    <circle cx="0" cy="-12" r="2.5" fill="#ff9f00" opacity="0.6"/>
+    <circle cx="0" cy="0" r="2.5" fill="#ff9f00" opacity="0.6"/>
+    <circle cx="0" cy="12" r="2.5" fill="#ff9f00" opacity="0.6"/>
+  </g>
+
+  <!-- LÍNEAS CONECTORAS -->
+  <g stroke="#00d4ff" stroke-width="1" opacity="0.3" stroke-dasharray="3,3">
+    <line x1="190" y1="235" x2="100" y2="180"/>
+    <line x1="290" y1="235" x2="380" y2="180"/>
+    <line x1="150" y1="260" x2="80" y2="280"/>
+    <line x1="330" y1="260" x2="400" y2="280"/>
+    <line x1="240" y1="225" x2="240" y2="110"/>
+    <line x1="240" y1="125" x2="330" y2="90"/>
+  </g>
+
+  <!-- Etiqueta -->
+  <text x="240" y="350" font-family="Arial" font-size="14" fill="#00d4ff" text-anchor="middle" font-weight="bold">Laberinto Pro</text>
+</svg>

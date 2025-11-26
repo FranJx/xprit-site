@@ -36,6 +36,7 @@
     "autoprefixer": "latest",
     "html-pdf-node": "^1.0.8",
     "postcss": "latest",
+    "sharp": "^0.34.5",
     "tailwindcss": "latest",
     "typescript": "latest"
   }
