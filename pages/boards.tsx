@@ -45,7 +45,7 @@ export default function BoardsPage() {
     target: containerRef,
     offset: ['start start', 'end center'],
   })
-  const rotateHero = useTransform(scrollYProgress, [0, 0.3], [0, 18])
+  const rotateHeroY = useTransform(scrollYProgress, [0, 0.3], [0, 25])
 
   // Detect prefers-reduced-motion
   useEffect(() => {
@@ -274,9 +274,12 @@ turn_left(600)`,
               {/* Imagen del hero con scroll animation */}
               <motion.div
                 className="flex justify-center"
-                style={{ rotate: prefersReducedMotion ? 0 : rotateHero }}
+                style={{ 
+                  rotateY: prefersReducedMotion ? 0 : rotateHeroY,
+                  perspective: 1200,
+                }}
               >
-                <div className="w-full max-w-sm h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-gray-700 flex items-center justify-center relative overflow-hidden shadow-2xl shadow-cyan-500/20">
+                <div className="w-full max-w-sm h-96 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-gray-700 flex items-center justify-center relative overflow-hidden shadow-2xl shadow-cyan-500/20" style={{ transformStyle: 'preserve-3d' }}>
                   <Image
                     src="/images/board-hero.webp"
                     alt="Placa XpriT"
@@ -320,6 +323,11 @@ turn_left(600)`,
                   }
                   onHoverStart={() => !prefersReducedMotion && setActiveCard(card.id)}
                   onHoverEnd={() => setActiveCard(null)}
+                  animate={{
+                    scale: activeCard === card.id ? 1.15 : activeCard ? 0.85 : 1,
+                    zIndex: activeCard === card.id ? 10 : 1,
+                  }}
+                  transition={{ duration: 0.3 }}
                 >
                   {/* Card Container */}
                   <div className="relative h-96 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 hover:border-cyan-500">
