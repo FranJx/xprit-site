@@ -9,14 +9,14 @@ if (!process.env.DATABASE_URL) {
   process.exit(0);
 }
 
-console.log('📦 Running Prisma schema push...');
+console.log('📦 Running Prisma migrations...');
 
 try {
-  execSync('npx prisma db push --skip-generate', {
+  execSync('npx prisma migrate deploy', {
     stdio: 'inherit',
     cwd: process.cwd(),
   });
-  console.log('✅ Migration successful');
+  console.log('✅ Migrations applied successfully');
 } catch (err) {
   console.warn('⚠️  Migration warning:', err.message);
   // Don't fail the build if migration has issues
