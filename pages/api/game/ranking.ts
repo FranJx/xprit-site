@@ -8,7 +8,7 @@ interface ResponseData {
   message?: string;
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
@@ -16,11 +16,11 @@ export default function handler(
     if (req.method === 'GET') {
       const { userId } = req.query;
 
-      const ranking = getGlobalRanking();
-      
+      const ranking = await getGlobalRanking();
+
       let userStats;
       if (userId && typeof userId === 'string') {
-        userStats = getUserStats(userId);
+        userStats = await getUserStats(userId);
       }
 
       return res.status(200).json({

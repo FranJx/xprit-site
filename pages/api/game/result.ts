@@ -8,7 +8,7 @@ interface ResponseData {
   message?: string;
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
@@ -30,8 +30,8 @@ export default function handler(
         });
       }
 
-      const result = saveGameResult(userId, attempts, true);
-      const stats = getUserStats(userId);
+      const result = await saveGameResult(userId, attempts, true);
+      const stats = await getUserStats(userId);
 
       return res.status(200).json({
         success: true,

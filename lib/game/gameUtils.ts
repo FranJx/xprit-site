@@ -1,7 +1,6 @@
-import fs from 'fs';
-import path from 'path';
+import { PrismaClient } from '@prisma/client';
 
-const GAMES_DATA_FILE = path.join(process.cwd(), 'data', 'games.json');
+const prisma = new PrismaClient();
 
 export interface User {
   id: string;
@@ -16,121 +15,108 @@ export interface GameResult {
   won: boolean;
 }
 
-export interface GameData {
-  users: { [key: string]: User };
-  results: GameResult[];
-}
-
-// Inicializar el archivo de datos si no existe
-export function ensureDataFileExists(): void {
-  if (!fs.existsSync(GAMES_DATA_FILE)) {
-    const initialData: GameData = { users: {}, results: [] };
-    fs.mkdirSync(path.dirname(GAMES_DATA_FILE), { recursive: true });
-    fs.writeFileSync(GAMES_DATA_FILE, JSON.stringify(initialData, null, 2));
-  }
-}
-
-// Leer datos del archivo
-export function readGameData(): GameData {
-  ensureDataFileExists();
-  const data = fs.readFileSync(GAMES_DATA_FILE, 'utf-8');
-  return JSON.parse(data);
-}
-
-// Escribir datos al archivo
-export function writeGameData(data: GameData): void {
-  ensureDataFileExists();
-  fs.writeFileSync(GAMES_DATA_FILE, JSON.stringify(data, null, 2));
-}
-
 // Crear o obtener usuario
-export function getOrCreateUser(userId: string, name?: string): User {
-  const data = readGameData();
-  
-  if (data.users[userId]) {
-    return data.users[userId];
+export async function getOrCreateUser(userId: string, name?: string): Promise<User> {
+  let user = await prisma.gameUser.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    user = await prisma.gameUser.create({
+      data: {
+        id: userId,
+        name: name || `Jugador_${userId.substring(0, 6)}`,
+      },
+    });
   }
-  
-  const newUser: User = {
-    id: userId,
-    name: name || `Jugador_${userId.substring(0, 6)}`,
-    createdAt: new Date().toISOString(),
+
+  return {
+    id: user.id,
+    name: user.name,
+    createdAt: user.createdAt.toISOString(),
   };
-  
-  data.users[userId] = newUser;
-  writeGameData(data);
-  
-  return newUser;
 }
 
 // Actualizar nombre del usuario
-export function updateUserName(userId: string, name: string): User {
-  const data = readGameData();
-  
-  if (!data.users[userId]) {
-    return getOrCreateUser(userId, name);
-  }
-  
-  data.users[userId].name = name;
-  writeGameData(data);
-  
-  return data.users[userId];
+export async function updateUserName(userId: string, name: string): Promise<User> {
+  const user = await prisma.gameUser.upsert({
+    where: { id: userId },
+    update: { name },
+    create: {
+      id: userId,
+      name,
+    },
+  });
+
+  return {
+    id: user.id,
+    name: user.name,
+    createdAt: user.createdAt.toISOString(),
+  };
 }
 
 // Guardar resultado de partida
-export function saveGameResult(userId: string, attempts: number, won: boolean): GameResult {
-  const data = readGameData();
-  
-  const result: GameResult = {
-    userId,
-    attempts,
-    date: new Date().toISOString(),
-    won,
+export async function saveGameResult(userId: string, attempts: number, won: boolean): Promise<GameResult> {
+  // Crear usuario si no existe
+  await getOrCreateUser(userId);
+
+  const result = await prisma.gameResult.create({
+    data: {
+      userId,
+      attempts,
+      won,
+    },
+  });
+
+  return {
+    userId: result.userId,
+    attempts: result.attempts,
+    date: result.date.toISOString(),
+    won: result.won,
   };
-  
-  data.results.push(result);
-  writeGameData(data);
-  
-  return result;
 }
 
 // Obtener estadísticas del usuario
-export function getUserStats(userId: string) {
-  const data = readGameData();
-  const userResults = data.results.filter((r) => r.userId === userId);
-  
+export async function getUserStats(userId: string) {
+  const userResults = await prisma.gameResult.findMany({
+    where: { userId },
+  });
+
   const winResults = userResults.filter((r) => r.won);
-  
+
   return {
     totalGames: userResults.length,
     gamesWon: winResults.length,
     gamesLost: userResults.length - winResults.length,
-    averageAttempts: winResults.length > 0 
+    averageAttempts: winResults.length > 0
       ? Math.round((winResults.reduce((sum, r) => sum + r.attempts, 0) / winResults.length) * 100) / 100
       : 0,
   };
 }
 
 // Obtener ranking global
-export function getGlobalRanking() {
-  const data = readGameData();
-  
-  const ranking = Object.values(data.users).map((user) => {
-    const userResults = data.results.filter((r) => r.userId === user.id);
-    const winResults = userResults.filter((r) => r.won);
-    
+export async function getGlobalRanking() {
+  const users = await prisma.gameUser.findMany({
+    include: {
+      results: true,
+    },
+  });
+
+  const ranking = users.map((user) => {
+    const winResults = user.results.filter((r) => r.won);
+
     return {
       userId: user.id,
       userName: user.name,
-      totalGames: userResults.length,
+      totalGames: user.results.length,
       gamesWon: winResults.length,
-      gamesLost: userResults.length - winResults.length,
+      gamesLost: user.results.length - winResults.length,
       averageAttempts: winResults.length > 0
         ? Math.round((winResults.reduce((sum, r) => sum + r.attempts, 0) / winResults.length) * 100) / 100
         : 0,
     };
   });
-  
+
   // Ordenar por promedio de intentos (menor primero), pero solo contar usuarios con al menos 1 partida ganada
   return ranking
     .filter((r) => r.gamesWon > 0)
@@ -145,3 +131,4 @@ export function getGlobalRanking() {
 export function generateSecretNumber(): number {
   return Math.floor(Math.random() * 100) + 1;
 }
+

@@ -7,7 +7,7 @@ interface ResponseData {
   message?: string;
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
@@ -23,7 +23,7 @@ export default function handler(
         });
       }
 
-      const user = getOrCreateUser(userId, name as string | undefined);
+      const user = await getOrCreateUser(userId, name as string | undefined);
 
       return res.status(200).json({
         success: true,
@@ -42,7 +42,7 @@ export default function handler(
         });
       }
 
-      const user = updateUserName(userId, name);
+      const user = await updateUserName(userId, name);
 
       return res.status(200).json({
         success: true,
@@ -62,3 +62,4 @@ export default function handler(
     });
   }
 }
+
