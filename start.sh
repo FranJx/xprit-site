@@ -1,12 +1,23 @@
 #!/bin/bash
 set -e
 
-echo "🔧 Starting application with database migration..."
+echo "🔧 Starting XpriT Robotics on Railway..."
 
-# Run migration
+# Database migration
 echo "📦 Running database migration..."
 node scripts/migrate.js
 
-# Start the app
+echo "🚀 Starting XTH Backend..."
+cd xprit-robotics-hub/backend
+npm start &
+XTH_PID=$!
+echo "✅ XTH Backend started (PID: $XTH_PID)"
+
+cd ../..
+
+# Dar tiempo al backend para iniciarse
+sleep 3
+
 echo "🚀 Starting Next.js server..."
 exec next start
+
