@@ -2,13 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
-    const xthBackendUrl = process.env.XTH_BACKEND_URL || 'http://localhost:5000'
-    
     return {
-      beforeFiles: [
+      fallback: [
+        // Para rutas del XTH que no existan en Next.js, servir index.html del hub
         {
           source: '/hub/:path*',
-          destination: `${xthBackendUrl}/:path*`,
+          destination: '/hub/index.html',
         },
       ],
     }

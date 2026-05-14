@@ -6,7 +6,7 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "sh start.sh"
+    "startCommand": "npm start"
   }
 }
 

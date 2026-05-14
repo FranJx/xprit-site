@@ -21,66 +21,70 @@ Estructura básica creada: Next.js + TypeScript + Tailwind + ejemplo de visor 3D
 
 ## XTH - XpriT Robotics Hub
 
-El sitio incluye el **XTH (XpriT Robotics Hub)** como una subpágina en la ruta `/XTH`. Este es un hub social para la comunidad de robótica.
+El sitio incluye el **XTH (XpriT Robotics Hub)** como una SPA (Single Page Application) completamente **frontend**. Es una red social para la comunidad de robótica que se ejecuta completamente en el navegador del usuario.
 
 ### Setup del XTH en Desarrollo Local
 
-1. **Instalar dependencias del backend XTH:**
+1. **Instalar dependencias:**
    ```bash
-   cd xprit-robotics-hub/backend
    npm install
-   cd ../..
    ```
 
-2. **En una terminal separada, iniciar el XTH Backend:**
-   ```bash
-   cd xprit-robotics-hub/backend
-   npm run dev
-   ```
-   El backend estará en `http://localhost:5000`
-
-3. **Ejecutar Next.js:**
+2. **Ejecutar en desarrollo:**
    ```bash
    npm run dev
    ```
 
-4. **Acceder al XTH:**
+3. **Acceder al XTH:**
    - `/XTH` - Landing page del hub
-   - `/XTH/app` - Redirige a `/hub` que hace proxy a `http://localhost:5000`
-   - `/hub` - Acceso directo al XTH (proxy interno)
+   - `/XTH/app` - Redirige a `/hub`
+   - `/hub` - Acceso directo a la SPA del XTH
 
-### Cómo Funciona el Proxy
+**Nota:** En desarrollo, `/hub` redirige a `http://localhost:5173` (Vite dev server) del frontend del XTH si está corriendo por separado.
 
-- **En desarrollo:** `next.config.js` redirige `/hub/*` a `http://localhost:5000/*`
-- **En producción:** Usa `XTH_BACKEND_URL` environment variable
-- El usuario siempre ve `xprit-robotics.com/hub` sin que cambie la URL
+### Cómo Funciona en Producción
 
-### Configuración en Railway
+- El **frontend React del XTH** se compila a archivos estáticos durante el build
+- Los archivos se copian a `public/hub/`
+- Next.js los sirve desde `/hub` sin necesidad de un servidor backend separado
+- Es una **SPA completamente offline-first** que se ejecuta en el navegador del usuario
 
-Para desplegar en Railway:
+### Deployment en Railway
 
-1. **Configurar variables de ambiente:**
-   - `DATABASE_URL` - PostgreSQL en Railway
-   - `JWT_SECRET` - Secreto para JWT
-   - `CLOUDINARY_*` - Variables de Cloudinary
-   - `XTH_BACKEND_URL=http://localhost:5000` - (opcional, valor por defecto)
+1. **Configurar variables de ambiente (si es necesario):**
+   - `DATABASE_URL` - Para el sitio principal de Next.js (robots, noticias, etc)
+   - `JWT_SECRET` - Para autenticación del panel admin
+   - `CLOUDINARY_*` - Para manejo de imágenes
 
-2. **El deployment automático:**
-   - Railway ejecuta `sh start.sh` que:
-     1. Ejecuta migración de BD
-     2. Inicia XTH Backend en puerto 5000 (background)
-     3. Inicia Next.js en puerto 3000 (foreground)
+2. **El build automático:**
+   ```bash
+   npm run build
+   # Esto:
+   # 1. Compila Next.js
+   # 2. Compila el frontend del XTH (React/Vite) a static files
+   # 3. Copia los archivos a public/hub/
+   ```
 
-3. **Rutas en producción:**
-   - `https://xprit-robotics.com/XTH` - Landing page
-   - `https://xprit-robotics.com/XTH/app` - Redirige a `/hub`
-   - `https://xprit-robotics.com/hub` - Acceso al XTH (internamente proxeado a `:5000`)
+3. **El start automático:**
+   ```bash
+   npm start
+   # Esto:
+   # 1. Ejecuta migración de BD
+   # 2. Inicia Next.js que sirve todo (main site + XTH)
+   ```
 
-### Rutas del XTH
+### Estructura
 
-- `/XTH` - Página de inicio y descripción del hub
-- `/XTH/app` - Aplicación principal del hub (redirige a `/hub`)
-- `/hub` - Acceso directo al XTH
+- `/XTH` - Página landing del XTH (Next.js)
+- `/XTH/app` - Punto de entrada a la SPA (redirige a `/hub`)
+- `/hub` - **SPA completa del XTH** (archivos estáticos compilados)
+- `public/hub/` - Archivos estáticos del XTH compilado
+
+### Rutas
+
+- `/XTH` - Landing page
+- `/XTH/app` - Redirección a `/hub`
+- `/hub` - Aplicación principal del XTH (SPA completamente frontend)
 
 ## Scripts disponibles
 
