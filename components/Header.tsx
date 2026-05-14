@@ -12,6 +12,7 @@ export default function Header() {
     { href: '/noticias', label: 'Noticias' },
     { href: '/sponsors', label: 'Sponsors' },
     { href: '/quien-somos', label: 'Quiénes somos' },
+    { href: '/XTH', label: 'XTH', highlight: true },
     { href: '/contacto', label: 'Contacto' },
   ]
 
@@ -41,7 +42,11 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-gray-300 hover:text-cyan-400 transition-colors duration-200"
+              className={`transition-colors duration-200 ${
+                'highlight' in link && link.highlight
+                  ? 'px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-semibold hover:from-cyan-400 hover:to-blue-400 hover:shadow-lg hover:shadow-cyan-500/50'
+                  : 'text-gray-300 hover:text-cyan-400'
+              }`}
             >
               {link.label}
             </Link>
@@ -67,7 +72,11 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="block text-gray-300 hover:text-cyan-400 transition-colors duration-200 py-2"
+              className={`block transition-colors duration-200 py-2 ${
+                'highlight' in link && link.highlight
+                  ? 'px-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg font-semibold'
+                  : 'text-gray-300 hover:text-cyan-400'
+              }`}
               onClick={() => setIsOpen(false)}
             >
               {link.label}
