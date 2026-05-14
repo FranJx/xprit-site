@@ -39,34 +39,48 @@ El sitio incluye el **XTH (XpriT Robotics Hub)** como una subpágina en la ruta 
    ```
    El backend estará en `http://localhost:5000`
 
-3. **Acceder al XTH:**
-   - Abre `http://localhost:3000/XTH` en tu navegador
-   - Haz clic en "Entrar al Hub" que te redirigirá a `http://localhost:5000`
+3. **Ejecutar Next.js:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Acceder al XTH:**
+   - `/XTH` - Landing page del hub
+   - `/XTH/app` - Redirige a `/hub` que hace proxy a `http://localhost:5000`
+   - `/hub` - Acceso directo al XTH (proxy interno)
+
+### Cómo Funciona el Proxy
+
+- **En desarrollo:** `next.config.js` redirige `/hub/*` a `http://localhost:5000/*`
+- **En producción:** Usa `XTH_BACKEND_URL` environment variable
+- El usuario siempre ve `xprit-robotics.com/hub` sin que cambie la URL
 
 ### Configuración en Railway
 
-Para desplegar en Railway con el XTH integrado:
+Para desplegar en Railway:
 
-1. **Configurar variables de ambiente en Railway:**
+1. **Configurar variables de ambiente:**
    - `DATABASE_URL` - PostgreSQL en Railway
    - `JWT_SECRET` - Secreto para JWT
-   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` - Para manejo de imágenes
+   - `CLOUDINARY_*` - Variables de Cloudinary
+   - `XTH_BACKEND_URL=http://localhost:5000` - (opcional, valor por defecto)
 
 2. **El deployment automático:**
-   - Railway detectará `railway.json`
-   - Ejecutará `sh start.sh` que:
-     - Inicia el XTH Backend en puerto 5000
-     - Inicia Next.js en puerto 3000
+   - Railway ejecuta `sh start.sh` que:
+     1. Ejecuta migración de BD
+     2. Inicia XTH Backend en puerto 5000 (background)
+     3. Inicia Next.js en puerto 3000 (foreground)
 
-3. **URL en producción:**
-   - Sitio principal: `https://xprit-robotics.com`
-   - XTH landing page: `https://xprit-robotics.com/XTH`
-   - XTH aplicación: `https://xprit-robotics.com/XTH/app` → redirige a `https://xprit-robotics.com:5000`
+3. **Rutas en producción:**
+   - `https://xprit-robotics.com/XTH` - Landing page
+   - `https://xprit-robotics.com/XTH/app` - Redirige a `/hub`
+   - `https://xprit-robotics.com/hub` - Acceso al XTH (internamente proxeado a `:5000`)
 
 ### Rutas del XTH
 
 - `/XTH` - Página de inicio y descripción del hub
-- `/XTH/app` - Aplicación principal del hub (redirige al backend en puerto 5000)
+- `/XTH/app` - Aplicación principal del hub (redirige a `/hub`)
+- `/hub` - Acceso directo al XTH
 
 ## Scripts disponibles
 

@@ -3,6 +3,9 @@ set -e
 
 echo "🔧 Starting XpriT Robotics on Railway..."
 
+# Exportar variables de ambiente
+export XTH_BACKEND_URL=${XTH_BACKEND_URL:-http://localhost:5000}
+
 # Database migration
 echo "📦 Running database migration..."
 node scripts/migrate.js

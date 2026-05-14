@@ -3,16 +3,8 @@ import { useEffect } from 'react'
 
 export default function XTHApp() {
   useEffect(() => {
-    // Redirigir automáticamente al XTH Backend
-    // En desarrollo: http://localhost:5000
-    // En producción: mismo dominio en puerto 5000 o URL configurada
-    const isDev = process.env.NODE_ENV === 'development'
-    const xthUrl = isDev 
-      ? 'http://localhost:5000' // Puerto del XTH Backend
-      : (process.env.NEXT_PUBLIC_XTH_URL || window.location.origin.replace(':3000', ':5000'))
-    
-    console.log('🤖 Redirigiendo a XTH:', xthUrl)
-    window.location.href = xthUrl
+    // Redirigir a /hub que actúa como proxy al backend del XTH
+    window.location.href = '/hub'
   }, [])
 
   return (
