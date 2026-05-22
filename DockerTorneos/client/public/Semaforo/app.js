@@ -10,13 +10,6 @@ let estadoSemaforo = {
     tiempoOpcional: 0
 };
 
-// ==================== VARIABLES DE INTEGRACIÓN ====================
-const urlParams = new URLSearchParams(window.location.search);
-const matchId = urlParams.get('matchId');
-const token = urlParams.get('token');
-const SERVER_URL = 'http://localhost:4000';
-let matchDetails = null;
-
 let puntuacion = {
     rojo: {
         puntos: 0,
@@ -36,15 +29,56 @@ let tiemposFase = {
 
 let ventanaCompetidorAbierta = null;
 let temaActual = 'dark';
-let semaforoBloqueado = false;
+
+// ==================== CONFIGURACIÓN SOCKET.IO ====================
+const SERVER = window.location.hostname === 'localhost' 
+    ? 'http://localhost:4000'
+    : `http://${window.location.hostname}:4000`;
+
+const urlParams = new URLSearchParams(window.location.search);
+const matchId = urlParams.get('matchId') || '1';
+let socket = null;
+
+function conectarAlBackend() {
+    socket = io(SERVER + '/overlay', {
+        query: { channel: matchId }
+    });
+
+    socket.on('connect', () => {
+        console.log('✅ Semáforo conectado al backend:', socket.id);
+        socket.emit('joinChannel', matchId);
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('❌ Error de conexión:', error);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('❌ Desconectado del backend');
+    });
+
+    // Recibir cambios desde el backend (si otro cliente modifica el estado)
+    socket.on('overlayUpdate', (data) => {
+        console.log('📥 Actualización recibida:', data);
+        if (data.puntuacion) {
+            puntuacion = data.puntuacion;
+            actualizarDisplayPuntuacion();
+        }
+    });
+}
+
+function actualizarDisplayPuntuacion() {
+    document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
+    document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
+    document.getElementById('faltasRojo').textContent = puntuacion.rojo.faltas;
+    document.getElementById('faltasAzul').textContent = puntuacion.azul.faltas;
+}
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', function() {
     inicializarTema();
     inicializarEventos();
-    if (matchId && token) {
-        cargarDatosMatch();
-    }
+    conectarAlBackend();
 });
 
 function inicializarTema() {
@@ -101,91 +135,8 @@ function inicializarEventos() {
     document.getElementById('btnResetPuntuacion')?.addEventListener('click', resetearPuntuacion);
 }
 
-async function cargarDatosMatch() {
-    try {
-        const res = await fetch(`${SERVER_URL}/api/tournaments/match/${matchId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        if (!res.ok) throw new Error('No se pudo cargar la partida del servidor.');
-        matchDetails = await res.json();
-        
-        // Actualizar nombres de equipos en tarjetas
-        const cardRojoTitle = document.querySelector('.robot-rojo h3');
-        const cardAzulTitle = document.querySelector('.robot-azul h3');
-        if (cardRojoTitle) cardRojoTitle.textContent = matchDetails.team1_name || 'ROBOT ROJO';
-        if (cardAzulTitle) cardAzulTitle.textContent = matchDetails.team2_name || 'ROBOT AZUL';
-        
-        // Sincronizar puntuación local con el backend
-        puntuacion.rojo.puntos = matchDetails.score1 || 0;
-        puntuacion.azul.puntos = matchDetails.score2 || 0;
-        
-        document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
-        document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
-        
-        // Si hay una ventana del competidor abierta, mandarle nombres y puntos
-        if (ventanaCompetidorAbierta && !ventanaCompetidorAbierta.closed) {
-            ventanaCompetidorAbierta.postMessage({
-                evento: 'actualizar_nombres_equipos',
-                team1_name: matchDetails.team1_name,
-                team2_name: matchDetails.team2_name
-            }, '*');
-        }
-        enviarActualizacionPuntuacion();
-
-        await reclamarMatchParaJuez();
-    } catch (err) {
-        console.error(err);
-        alert('Error al cargar datos del torneo: ' + err.message);
-    }
-}
-
-async function reclamarMatchParaJuez() {
-    if (!matchDetails || !matchId || !token) return;
-
-    try {
-        const res = await fetch(`${SERVER_URL}/api/tournaments/${matchDetails.tournament_id}/match/${matchId}/claim-overlay`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (res.status === 409) {
-            semaforoBloqueado = true;
-            bloquearControles('Este match ya está abierto por otro juez.');
-            return;
-        }
-
-        if (!res.ok) {
-            throw new Error('No se pudo reclamar el match para el overlay.');
-        }
-    } catch (err) {
-        console.error(err);
-        alert('Error al reclamar el match: ' + err.message);
-    }
-}
-
-function bloquearControles(mensaje) {
-    const ids = ['btnStart', 'btnStop', 'btnCronoOpcional', 'btnResetPuntuacion', 'btnCompetidor'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = true;
-    });
-
-    document.querySelectorAll('.btn-punto, .btn-falta').forEach(btn => {
-        btn.disabled = true;
-    });
-
-    if (mensaje) {
-        alert(mensaje);
-    }
-}
-
 // ==================== LÓGICA DEL SEMÁFORO ====================
 function iniciarSemaforo() {
-    if (semaforoBloqueado) return;
     if (estadoSemaforo.activo) return;
     
     estadoSemaforo.activo = true;
@@ -201,7 +152,6 @@ function iniciarSemaforo() {
 }
 
 function detenerSemaforo() {
-    if (semaforoBloqueado) return;
     estadoSemaforo.activo = false;
     estadoSemaforo.cronoInicialActivo = false;
     estadoSemaforo.cronoCompetenciaActivo = false;
@@ -241,6 +191,15 @@ function encenderLed(color) {
     // Notificar a la ventana del competidor
     if (ventanaCompetidorAbierta) {
         ventanaCompetidorAbierta.postMessage({ evento: 'led_encendido', color: color }, '*');
+    }
+
+    // Emitir al backend
+    if (socket && socket.connected) {
+        socket.emit('scoreUpdate', {
+            matchId: matchId,
+            estado: { fase: color },
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
@@ -392,78 +351,22 @@ function actualizarDisplayCrono(elementId, tiempoEnDecimas) {
 }
 
 // ==================== LÓGICA DE PUNTUACIÓN ====================
-async function agregarPunto(evento) {
-    if (semaforoBloqueado) return;
+function agregarPunto(evento) {
     const robot = evento.target.dataset.robot;
     
-    if (matchId && token) {
-        const teamNum = robot === 'rojo' ? 1 : 2;
-        try {
-            const res = await fetch(`${SERVER_URL}/api/tournaments/match/${matchId}/increment`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ team: teamNum })
-            });
-            if (!res.ok) throw new Error('Error al guardar en el servidor');
-            const data = await res.json();
-            puntuacion.rojo.puntos = data.score1;
-            puntuacion.azul.puntos = data.score2;
-        } catch (err) {
-            console.error(err);
-            alert('No se pudo guardar la puntuación: ' + err.message);
-            return;
-        }
-    } else {
-        if (robot === 'rojo') {
-            puntuacion.rojo.puntos++;
-        } else if (robot === 'azul') {
-            puntuacion.azul.puntos++;
-        }
+    if (robot === 'rojo') {
+        puntuacion.rojo.puntos++;
+        document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
+    } else if (robot === 'azul') {
+        puntuacion.azul.puntos++;
+        document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
     }
-    
-    document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
-    document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
     
     verificarGanador();
     enviarActualizacionPuntuacion();
 }
 
-async function incrementarFaltaPunto(teamNum) {
-    if (semaforoBloqueado) return;
-    if (matchId && token) {
-        try {
-            const res = await fetch(`${SERVER_URL}/api/tournaments/match/${matchId}/increment`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ team: teamNum })
-            });
-            if (!res.ok) throw new Error('Error al guardar en el servidor');
-            const data = await res.json();
-            puntuacion.rojo.puntos = data.score1;
-            puntuacion.azul.puntos = data.score2;
-        } catch (err) {
-            console.error(err);
-            alert('No se pudo guardar la puntuación por falta: ' + err.message);
-        }
-    } else {
-        if (teamNum === 1) {
-            puntuacion.rojo.puntos++;
-        } else {
-            puntuacion.azul.puntos++;
-        }
-    }
-    document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
-    document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
-}
-
-async function agregarFalta(evento) {
-    if (semaforoBloqueado) return;
+function agregarFalta(evento) {
     const robot = evento.target.dataset.robot;
     
     if (robot === 'rojo') {
@@ -472,7 +375,8 @@ async function agregarFalta(evento) {
         
         // Cada 2 faltas = 1 punto al contrincante
         if (puntuacion.rojo.faltas % 2 === 0) {
-            await incrementarFaltaPunto(2);
+            puntuacion.azul.puntos++;
+            document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
         }
     } else if (robot === 'azul') {
         puntuacion.azul.faltas++;
@@ -480,7 +384,8 @@ async function agregarFalta(evento) {
         
         // Cada 2 faltas = 1 punto al contrincante
         if (puntuacion.azul.faltas % 2 === 0) {
-            await incrementarFaltaPunto(1);
+            puntuacion.rojo.puntos++;
+            document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
         }
     }
     
@@ -499,55 +404,16 @@ function verificarGanador() {
     }
 }
 
-async function mostrarGanador(color) {
-    if (semaforoBloqueado) return;
+function mostrarGanador(color) {
     alert(`¡GANADOR: ROBOT ${color}!`);
-    if (matchId && token) {
-        try {
-            const res = await fetch(`${SERVER_URL}/api/tournaments/match/${matchId}/finalize`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (!res.ok) throw new Error('Error al finalizar en el servidor');
-            alert('La partida se ha guardado y finalizado correctamente en el torneo.');
-        } catch (err) {
-            console.error(err);
-            alert('Error al finalizar la partida en el servidor: ' + err.message);
-        }
-    }
 }
 
-async function resetearPuntuacion() {
-    if (semaforoBloqueado) return;
-    if (matchId && token) {
-        try {
-            const res = await fetch(`${SERVER_URL}/api/tournaments/match/${matchId}/reset`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (!res.ok) throw new Error('Error al reiniciar en el servidor');
-            const data = await res.json();
-            puntuacion.rojo.puntos = data.score1;
-            puntuacion.azul.puntos = data.score2;
-        } catch (err) {
-            console.error(err);
-            alert('No se pudo reiniciar la puntuación en el servidor: ' + err.message);
-            return;
-        }
-    } else {
-        puntuacion.rojo.puntos = 0;
-        puntuacion.azul.puntos = 0;
-    }
+function resetearPuntuacion() {
+    puntuacion.rojo = { puntos: 0, faltas: 0 };
+    puntuacion.azul = { puntos: 0, faltas: 0 };
     
-    puntuacion.rojo.faltas = 0;
-    puntuacion.azul.faltas = 0;
-    
-    document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
-    document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
+    document.getElementById('puntosRojo').textContent = '0';
+    document.getElementById('puntosAzul').textContent = '0';
     document.getElementById('faltasRojo').textContent = '0';
     document.getElementById('faltasAzul').textContent = '0';
     
@@ -560,6 +426,16 @@ function enviarActualizacionPuntuacion() {
             evento: 'actualizar_puntuacion', 
             puntuacion: puntuacion 
         }, '*');
+    }
+
+    // Emitir al backend para sincronizar con Overlay2
+    if (socket && socket.connected) {
+        socket.emit('scoreUpdate', {
+            matchId: matchId,
+            puntuacion: puntuacion,
+            timestamp: new Date().toISOString()
+        });
+        console.log('📤 Puntuación enviada al backend');
     }
 }
 
@@ -581,20 +457,12 @@ function cerrarVentanaCompetidor() {
 
 // Escuchar mensajes de la ventana del competidor
 window.addEventListener('message', (event) => {
+    // Verificar origen si es necesario
     const data = event.data;
     
     if (data.evento === 'ventana_cargada') {
         if (ventanaCompetidorAbierta === null) {
             ventanaCompetidorAbierta = event.source;
         }
-        // Enviar nombres de equipos y puntuación inmediatamente
-        if (matchDetails) {
-            ventanaCompetidorAbierta.postMessage({
-                evento: 'actualizar_nombres_equipos',
-                team1_name: matchDetails.team1_name,
-                team2_name: matchDetails.team2_name
-            }, '*');
-        }
-        enviarActualizacionPuntuacion();
     }
 });

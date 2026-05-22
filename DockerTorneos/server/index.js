@@ -97,12 +97,13 @@ overlayNamespace.on('connection', socket => {
   });
 
   socket.on('scoreUpdate', data => {
-    const ch = data.channel || '1';
+    const ch = data.channel || data.matchId || '1';
+    console.log(`📊 scoreUpdate recibido en channel ${ch}:`, data);
     broadcastOverlayState(data, ch);
   });
 
   socket.on('setMatch', data => {
-    const ch = data.channel || '1';
+    const ch = data.channel || data.matchId || '1';
     broadcastOverlayState(data, ch);
   });
 

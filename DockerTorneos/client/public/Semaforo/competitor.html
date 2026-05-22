@@ -165,11 +165,6 @@
                 case 'actualizar_puntuacion':
                     actualizarPuntuacion(data.puntuacion);
                     break;
-
-                case 'actualizar_nombres_equipos':
-                    document.querySelector('.team-rojo .team-name').textContent = data.team1_name || 'Robot Rojo';
-                    document.querySelector('.team-azul .team-name').textContent = data.team2_name || 'Robot Azul';
-                    break;
             }
         });
 

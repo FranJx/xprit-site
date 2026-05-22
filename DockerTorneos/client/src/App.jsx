@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Tournaments from './pages/Tournaments'
 import TournamentDetail from './pages/TournamentDetail'
 import StreamPanel from './pages/StreamPanel'
+import AdminUsers from './pages/AdminUsers'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import Overlay from './pages/Overlay'
@@ -36,6 +37,7 @@ function AppShell() {
         <Route path="/tournaments" element={<Tournaments/>} />
         <Route path="/tournament/:id" element={<TournamentDetail/>} />
         <Route path="/stream" element={<ProtectedRoute roles={['admin', 'stream']}><StreamPanel/></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsers/></ProtectedRoute>} />
         <Route path="/register" element={<Register/>} />
         <Route path="/login" element={<Login/>} />
         <Route path="/overlay" element={<Overlay/>} />
