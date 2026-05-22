@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlay Premium - COPAS</title>
+    <!-- Google Fonts for esports vibe: Orbitron & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: transparent !important;
+        overflow: hidden;
+        font-family: 'Inter', sans-serif;
+      }
+      body {
+        -webkit-font-smoothing: antialiased;
+      }
+      .overlay2-root {
+        display: flex;
+        align-items: flex-start; /* Place at the top of the screen */
+        justify-content: center;
+        height: 100%;
+        padding-top: 20px;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay2-root" class="overlay2-root"></div>
+    <noscript>
+      <div style="color: white; background: rgba(0,0,0,0.6); padding: 12px;">JavaScript está deshabilitado. El overlay requiere JS para funcionar.</div>
+    </noscript>
+    <script type="module" src="/src/overlay2Main.jsx"></script>
+    <script>
+      window.addEventListener('error', function (e) {
+        try {
+          const root = document.getElementById('overlay2-root') || document.body;
+          root.innerHTML = '<div style="color:white;background:rgba(255,0,0,0.85);padding:16px;font-family:sans-serif;">Overlay error: '+(e && e.message ? e.message : 'unknown')+'</div>';
+        } catch (err) {}
+      });
+    </script>
+  </body>
+</html>

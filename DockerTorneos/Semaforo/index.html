@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Semáforo - Admin/Árbitro</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark">
+    <!-- FLYER HEADER -->
+    <div class="flyer-header">
+        <img id="flyerHeader" src="arriba.png" alt="Flyer Header" class="flyer-img">
+    </div>
+
+    <!-- BOTÓN THEME TOGGLE -->
+    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+        <span class="theme-icon">🌙 Dark</span>
+    </button>
+
+    <div class="admin-container">
+        <!-- SECCIÓN SUPERIOR IZQUIERDA: SEMÁFORO Y CONTROLES -->
+        <div class="semaforo-section">
+            <div class="semaforo-controls">
+                <h2>SEMÁFORO</h2>
+                
+                <!-- SEMÁFORO LED -->
+                <div class="semaforo">
+                    <div class="led-rojo" id="ledRojo"></div>
+                    <div class="led-amarillo" id="ledAmarillo"></div>
+                    <div class="led-verde" id="ledVerde"></div>
+                </div>
+                
+                <!-- CRONÓMETROS -->
+                <div class="cronometros">
+                    <div class="cronometro-item">
+                        <span class="label-crono">Cuenta Inicial</span>
+                        <div class="display-crono" id="cronoInicial">00:00</div>
+                    </div>
+                    <div class="cronometro-item">
+                        <span class="label-crono">Tiempo Competencia</span>
+                        <div class="display-crono" id="cronoCompetencia">00:00</div>
+                    </div>
+                </div>
+                
+                <!-- BOTONES DE CONTROL -->
+                <div class="botones-semaforo">
+                    <button id="btnStart" class="btn btn-start">INICIAR</button>
+                    <button id="btnStop" class="btn btn-stop" disabled>DETENER</button>
+                </div>
+                
+                <!-- CRONÓMETRO OPCIONAL -->
+                <div class="cronometro-opcional">
+                    <label>Cronómetro Opcional</label>
+                    <div class="display-crono-opt" id="cronoOpcional">00:00</div>
+                    <button id="btnCronoOpcional" class="btn btn-crono-opt">ACTIVAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DERECHA: CONTROLS Y PUNTUACIÓN -->
+        <div class="puntuacion-section">
+            <!-- BOTÓN ABRIR VENTANA COMPETIDOR -->
+            <button id="btnCompetidor" class="btn btn-competidor">Abrir Pantalla Competidor</button>
+            
+            <!-- TÍTULO PUNTUACIÓN -->
+            <h2 class="titulo-puntuacion">PUNTUACIÓN</h2>
+            
+            <!-- PUNTUACIÓN -->
+            <div class="puntuacion">
+                <!-- ROBOT ROJO -->
+                <div class="robot-card robot-rojo">
+                    <h3>ROBOT ROJO</h3>
+                    <div class="puntos-display" id="puntosRojo">0</div>
+                    <div class="faltas-display">Faltas: <span id="faltasRojo">0</span></div>
+                    <div class="botones-robot">
+                        <button class="btn btn-punto btn-rojo" data-robot="rojo">+Punto</button>
+                        <button class="btn btn-falta btn-rojo" data-robot="rojo">+Falta</button>
+                    </div>
+                </div>
+                
+                <!-- VS -->
+                <div class="vs">VS</div>
+                
+                <!-- ROBOT AZUL -->
+                <div class="robot-card robot-azul">
+                    <h3>ROBOT AZUL</h3>
+                    <div class="puntos-display" id="puntosAzul">0</div>
+                    <div class="faltas-display">Faltas: <span id="faltasAzul">0</span></div>
+                    <div class="botones-robot">
+                        <button class="btn btn-punto btn-azul" data-robot="azul">+Punto</button>
+                        <button class="btn btn-falta btn-azul" data-robot="azul">+Falta</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- BOTÓN RESET PUNTUACIÓN -->
+            <button id="btnResetPuntuacion" class="btn btn-reset">Limpiar Puntuación</button>
+        </div>
+    </div>
+
+    <!-- LOGO ESQUINA INFERIOR DERECHA -->
+    <div class="logo-corner">
+        <img id="logoCorner" src="logo.png" alt="Logo" class="logo-img">
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

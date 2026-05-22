@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla del Competidor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark">
+    <!-- FLYER HEADER -->
+    <div class="flyer-header">
+        <img id="flyerHeader" src="arriba.png" alt="Flyer Header" class="flyer-img">
+    </div>
+
+    <!-- BOTÓN THEME TOGGLE -->
+    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+        <span class="theme-icon">🌙 Dark</span>
+    </button>
+    <div class="competitor-container">
+        <!-- SEMÁFORO -->
+        <div class="competitor-semaforo">
+            <h2>SEMÁFORO</h2>
+            <div class="competitor-leds">
+                <div class="competitor-led competitor-led-rojo" id="compLedRojo"></div>
+                <div class="competitor-led competitor-led-amarillo" id="compLedAmarillo"></div>
+                <div class="competitor-led competitor-led-verde" id="compLedVerde"></div>
+            </div>
+        </div>
+
+        <!-- CRONÓMETROS -->
+        <div class="competitor-cronometros">
+            <div class="competitor-chrono-item">
+                <div class="competitor-chrono-label">Cuenta Inicial</div>
+                <div class="competitor-display-crono" id="compCronoInicial">00:00</div>
+            </div>
+            <div class="competitor-chrono-item">
+                <div class="competitor-chrono-label">Tiempo Competencia</div>
+                <div class="competitor-display-crono" id="compCronoCompetencia">00:00</div>
+            </div>
+        </div>
+
+        <!-- PUNTUACIÓN -->
+        <div class="puntuacion-display">
+            <div class="team-display team-rojo">
+                <div class="team-name">Robot Rojo</div>
+                <div class="team-puntos" id="compPuntosRojo">0</div>
+                <div class="team-faltas">Faltas: <span id="compFaltasRojo">0</span></div>
+            </div>
+            
+            <div style="text-align: center; font-size: 32px; color: #ffff00; margin: 0 50px;">VS</div>
+            
+            <div class="team-display team-azul">
+                <div class="team-name">Robot Azul</div>
+                <div class="team-puntos" id="compPuntosAzul">0</div>
+                <div class="team-faltas">Faltas: <span id="compFaltasAzul">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGO ESQUINA INFERIOR DERECHA -->
+    <div class="logo-corner">
+        <img id="logoCorner" src="logo.png" alt="Logo" class="logo-img">
+    </div>
+
+    <script>
+        // Estado local del competidor
+        let estadoCompetidor = {
+            ledActivo: null,
+            cronoInicial: 0,
+            cronoCompetencia: 0,
+            puntuacion: {
+                rojo: { puntos: 0, faltas: 0 },
+                azul: { puntos: 0, faltas: 0 }
+            }
+        };
+
+        let temaActual = 'dark';
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarTema();
+            configurarEventos();
+        });
+
+        function inicializarTema() {
+            const temaSaved = localStorage.getItem('tema') || 'dark';
+            temaActual = temaSaved;
+            document.body.className = `theme-${temaSaved}`;
+            actualizarTextoBotonTema();
+        }
+
+        function toggleTema() {
+            temaActual = temaActual === 'dark' ? 'light' : 'dark';
+            document.body.className = `theme-${temaActual}`;
+            localStorage.setItem('tema', temaActual);
+            actualizarTextoBotonTema();
+        }
+
+        function actualizarTextoBotonTema() {
+            const btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = `<span class="theme-icon">${temaActual === 'dark' ? '☀️ Light' : '🌙 Dark'}</span>`;
+            }
+        }
+
+        function configurarEventos() {
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTema);
+            }
+        }
+
+        // Escuchar mensajes del admin
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            
+            switch(data.evento) {
+                case 'inicializacion':
+                    console.log('Competidor inicializado');
+                    break;
+                    
+                case 'cambiar_tema':
+                    temaActual = data.tema;
+                    document.body.className = `theme-${data.tema}`;
+                    actualizarTextoBotonTema();
+                    break;
+                    
+                case 'led_encendido':
+                    apagarTodosLeds();
+                    const ledColor = data.color.charAt(0).toUpperCase() + data.color.slice(1);
+                    document.getElementById(`compLed${ledColor}`).classList.add('activo');
+                    estadoCompetidor.ledActivo = data.color;
+                    break;
+                    
+                case 'todos_verdes':
+                    apagarTodosLeds();
+                    
+                    const compLedRojo = document.getElementById('compLedRojo');
+                    const compLedAmarillo = document.getElementById('compLedAmarillo');
+                    const compLedVerde = document.getElementById('compLedVerde');
+                    
+                    compLedRojo.style.background = '#00ff00';
+                    compLedRojo.style.boxShadow = '0 0 40px rgba(76, 175, 80, 0.8)';
+                    compLedRojo.classList.add('activo');
+                    
+                    compLedAmarillo.style.background = '#00ff00';
+                    compLedAmarillo.style.boxShadow = '0 0 40px rgba(76, 175, 80, 0.8)';
+                    compLedAmarillo.classList.add('activo');
+                    
+                    compLedVerde.classList.add('activo');
+                    break;
+                    
+                case 'semaforo_apagado':
+                    apagarTodosLeds();
+                    break;
+                    
+                case 'actualizar_crono_inicial':
+                    actualizarDisplayCrono('compCronoInicial', data.tiempo);
+                    break;
+                    
+                case 'actualizar_crono_competencia':
+                    actualizarDisplayCrono('compCronoCompetencia', data.tiempo);
+                    break;
+                    
+                case 'actualizar_puntuacion':
+                    actualizarPuntuacion(data.puntuacion);
+                    break;
+
+                case 'actualizar_nombres_equipos':
+                    document.querySelector('.team-rojo .team-name').textContent = data.team1_name || 'Robot Rojo';
+                    document.querySelector('.team-azul .team-name').textContent = data.team2_name || 'Robot Azul';
+                    break;
+            }
+        });
+
+        function apagarTodosLeds() {
+            const compLedRojo = document.getElementById('compLedRojo');
+            const compLedAmarillo = document.getElementById('compLedAmarillo');
+            const compLedVerde = document.getElementById('compLedVerde');
+            
+            compLedRojo.classList.remove('activo');
+            compLedRojo.style.background = '';
+            compLedRojo.style.boxShadow = '';
+            
+            compLedAmarillo.classList.remove('activo');
+            compLedAmarillo.style.background = '';
+            compLedAmarillo.style.boxShadow = '';
+            
+            compLedVerde.classList.remove('activo');
+        }
+
+        function actualizarDisplayCrono(elementId, tiempoEnDecimas) {
+            const segundos = Math.floor(tiempoEnDecimas / 10);
+            const minutos = Math.floor(segundos / 60);
+            const segsRestantes = segundos % 60;
+            
+            const tiempo = `${String(minutos).padStart(2, '0')}:${String(segsRestantes).padStart(2, '0')}`;
+            document.getElementById(elementId).textContent = tiempo;
+        }
+
+        function actualizarPuntuacion(puntuacion) {
+            document.getElementById('compPuntosRojo').textContent = puntuacion.rojo.puntos;
+            document.getElementById('compPuntosAzul').textContent = puntuacion.azul.puntos;
+            document.getElementById('compFaltasRojo').textContent = puntuacion.rojo.faltas;
+            document.getElementById('compFaltasAzul').textContent = puntuacion.azul.faltas;
+        }
+
+        // Notificar al admin que la ventana se cargó
+        window.addEventListener('load', () => {
+            if (window.parent !== window) {
+                window.parent.postMessage({ evento: 'ventana_cargada' }, '*');
+            }
+        });
+    </script>
+</body>
+</html>

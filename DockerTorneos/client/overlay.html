@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlay - COPAS</title>
+    <!-- Bootstrap CSS (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-" crossorigin="anonymous">
+    <style>
+      html,body{ height:100%; margin:0; background:transparent }
+      body { -webkit-font-smoothing:antialiased; }
+      .overlay-root{ display:flex; align-items:center; justify-content:center; height:100%; }
+      .panel{ background: rgba(0,0,0,0.35); padding:18px 26px; border-radius:12px; backdrop-filter: blur(4px); }
+      .team{ color: #fff; font-weight:700; letter-spacing:0.6px; }
+      .score{ color:#fff; font-size:48px; font-weight:800; }
+      .team-small{ font-size:20px; opacity:0.9 }
+      /* Make overlay text visible on dark/light scenes */
+      .shadow-text{ text-shadow: 0 2px 6px rgba(0,0,0,0.8); }
+      @media (max-width: 640px){ .score{ font-size:34px } }
+    </style>
+  </head>
+  <body>
+    <div id="overlay-root" class="overlay-root"></div>
+    <noscript>
+      <div style="color: white; background: rgba(0,0,0,0.6); padding: 12px;">JavaScript está deshabilitado. El overlay requiere JS para funcionar.</div>
+    </noscript>
+    <script type="module" src="/src/overlayMain.jsx"></script>
+    <script>
+      // If there's a runtime error that prevents React mounting, show a visible message
+      window.addEventListener('error', function (e) {
+        try {
+          const root = document.getElementById('overlay-root') || document.body;
+          root.innerHTML = '<div style="color:white;background:rgba(255,0,0,0.85);padding:16px;font-family:sans-serif;">Overlay error: '+(e && e.message ? e.message : 'unknown')+' (ver consola)</div>';
+        } catch (err) {
+          // ignore
+        }
+      });
+    </script>
+  </body>
+</html>
