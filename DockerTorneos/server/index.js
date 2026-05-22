@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const db = require('./db');
 const authRoutes = require('./routes/auth');
 const tournamentRoutes = require('./routes/tournaments');
+const { getMatchOverlayPayload } = require('./routes/tournaments');
 const app = express();
 
 app.use(cors());
@@ -105,6 +106,18 @@ overlayNamespace.on('connection', socket => {
   socket.on('setMatch', data => {
     const ch = data.channel || data.matchId || '1';
     broadcastOverlayState(data, ch);
+  });
+
+  socket.on('requestMatchData', async (data) => {
+    try {
+      const matchId = data.matchId || data.channel || '1';
+      console.log(`📋 Solicitado match data para match ${matchId}`);
+      const matchData = await getMatchOverlayPayload(matchId);
+      socket.emit('matchData', matchData || {});
+    } catch (err) {
+      console.error('Error fetching match data:', err);
+      socket.emit('matchData', {});
+    }
   });
 
   socket.on('disconnect', () => {});

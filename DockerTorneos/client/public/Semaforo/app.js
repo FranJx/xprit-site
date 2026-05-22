@@ -47,6 +47,8 @@ function conectarAlBackend() {
     socket.on('connect', () => {
         console.log('✅ Semáforo conectado al backend:', socket.id);
         socket.emit('joinChannel', matchId);
+        // Solicitar datos del match
+        socket.emit('requestMatchData', { matchId: matchId });
     });
 
     socket.on('connect_error', (error) => {
@@ -63,6 +65,17 @@ function conectarAlBackend() {
         if (data.puntuacion) {
             puntuacion = data.puntuacion;
             actualizarDisplayPuntuacion();
+        }
+    });
+
+    // Recibir datos del match (nombres de robots)
+    socket.on('matchData', (data) => {
+        console.log('📋 Datos del match recibidos:', data);
+        if (data.team1) {
+            document.getElementById('nombreRobot1').textContent = data.team1.toUpperCase();
+        }
+        if (data.team2) {
+            document.getElementById('nombreRobot2').textContent = data.team2.toUpperCase();
         }
     });
 }

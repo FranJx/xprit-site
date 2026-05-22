@@ -854,3 +854,4 @@ router.post('/match/:matchId/reset', authenticateToken, requireRole(['admin', 'j
 });
 
 module.exports = router;
+module.exports.getMatchOverlayPayload = getMatchOverlayPayload;
