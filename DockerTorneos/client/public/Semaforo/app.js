@@ -207,12 +207,18 @@ function encenderLed(color) {
     }
 
     // Emitir al backend
-    if (socket && socket.connected) {
-        socket.emit('scoreUpdate', {
-            matchId: matchId,
-            estado: { fase: color },
-            timestamp: new Date().toISOString()
-        });
+    if (socket) {
+        try {
+            socket.emit('scoreUpdate', {
+                matchId: matchId,
+                channel: matchId,
+                estado: { fase: color },
+                timestamp: new Date().toISOString()
+            });
+            console.log('📤 LED emitido:', color);
+        } catch (e) {
+            console.error('❌ Error emitiendo LED:', e);
+        }
     }
 }
 
@@ -442,13 +448,20 @@ function enviarActualizacionPuntuacion() {
     }
 
     // Emitir al backend para sincronizar con Overlay2
-    if (socket && socket.connected) {
-        socket.emit('scoreUpdate', {
-            matchId: matchId,
-            puntuacion: puntuacion,
-            timestamp: new Date().toISOString()
-        });
-        console.log('📤 Puntuación enviada al backend');
+    if (socket) {
+        try {
+            socket.emit('scoreUpdate', {
+                matchId: matchId,
+                channel: matchId,
+                puntuacion: puntuacion,
+                timestamp: new Date().toISOString()
+            });
+            console.log('📤 Puntuación enviada al backend:', puntuacion);
+        } catch (e) {
+            console.error('❌ Error emitiendo puntuación:', e);
+        }
+    } else {
+        console.warn('⚠️ Socket no disponible para enviar puntuación');
     }
 }
 
