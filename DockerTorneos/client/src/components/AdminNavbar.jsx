@@ -22,12 +22,7 @@ export default function AdminNavbar(){
             <li className="nav-item"><Link className="nav-link" to="/">Inicio</Link></li>
             <li className="nav-item"><Link className="nav-link" to="/tournaments">Torneos</Link></li>
             {user && ['admin', 'stream'].includes(user.role) && (
-              <>
-                <li className="nav-item"><Link className="nav-link" to="/stream">Stream</Link></li>
-              </>
-            )}
-            {user && user.role === 'admin' && (
-              <li className="nav-item"><Link className="nav-link" to="/admin/users">Usuarios</Link></li>
+              <li className="nav-item"><Link className="nav-link" to="/stream">Stream</Link></li>
             )}
           </ul>
           <div className="d-flex">

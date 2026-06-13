@@ -6,7 +6,6 @@ const { Server } = require('socket.io');
 const db = require('./db');
 const authRoutes = require('./routes/auth');
 const tournamentRoutes = require('./routes/tournaments');
-const { getMatchOverlayPayload } = require('./routes/tournaments');
 const app = express();
 
 app.use(cors());
@@ -98,26 +97,13 @@ overlayNamespace.on('connection', socket => {
   });
 
   socket.on('scoreUpdate', data => {
-    const ch = data.channel || data.matchId || '1';
-    console.log(`📊 scoreUpdate recibido en channel ${ch}:`, data);
+    const ch = data.channel || '1';
     broadcastOverlayState(data, ch);
   });
 
   socket.on('setMatch', data => {
-    const ch = data.channel || data.matchId || '1';
+    const ch = data.channel || '1';
     broadcastOverlayState(data, ch);
-  });
-
-  socket.on('requestMatchData', async (data) => {
-    try {
-      const matchId = data.matchId || data.channel || '1';
-      console.log(`📋 Solicitado match data para match ${matchId}`);
-      const matchData = await getMatchOverlayPayload(matchId);
-      socket.emit('matchData', matchData || {});
-    } catch (err) {
-      console.error('Error fetching match data:', err);
-      socket.emit('matchData', {});
-    }
   });
 
   socket.on('disconnect', () => {});
@@ -160,9 +146,10 @@ async function ensureOverlaySchema() {
   `);
 }
 
-ensureOverlaySchema()
-  .then(() => {
-    httpServer.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+.ensureOverlaySchema()
+.then(() => {
+    // Bind explicitly to 0.0.0.0 so the server is reachable from other machines on the LAN
+    httpServer.listen(PORT, '0.0.0.0', () => console.log(`Server listening on ${PORT} (0.0.0.0)`));
   })
   .catch(err => {
     console.error('Failed to ensure overlay schema', err);

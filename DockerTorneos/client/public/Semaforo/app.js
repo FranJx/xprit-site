@@ -30,68 +30,10 @@ let tiemposFase = {
 let ventanaCompetidorAbierta = null;
 let temaActual = 'dark';
 
-// ==================== CONFIGURACIÓN SOCKET.IO ====================
-const SERVER = window.location.hostname === 'localhost' 
-    ? 'http://localhost:4000'
-    : `http://${window.location.hostname}:4000`;
-
-const urlParams = new URLSearchParams(window.location.search);
-const matchId = urlParams.get('matchId') || '1';
-let socket = null;
-
-function conectarAlBackend() {
-    socket = io(SERVER + '/overlay', {
-        query: { channel: matchId }
-    });
-
-    socket.on('connect', () => {
-        console.log('✅ Semáforo conectado al backend:', socket.id);
-        socket.emit('joinChannel', matchId);
-        // Solicitar datos del match
-        socket.emit('requestMatchData', { matchId: matchId });
-    });
-
-    socket.on('connect_error', (error) => {
-        console.error('❌ Error de conexión:', error);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('❌ Desconectado del backend');
-    });
-
-    // Recibir cambios desde el backend (si otro cliente modifica el estado)
-    socket.on('overlayUpdate', (data) => {
-        console.log('📥 Actualización recibida:', data);
-        if (data.puntuacion) {
-            puntuacion = data.puntuacion;
-            actualizarDisplayPuntuacion();
-        }
-    });
-
-    // Recibir datos del match (nombres de robots)
-    socket.on('matchData', (data) => {
-        console.log('📋 Datos del match recibidos:', data);
-        if (data.team1) {
-            document.getElementById('nombreRobot1').textContent = data.team1.toUpperCase();
-        }
-        if (data.team2) {
-            document.getElementById('nombreRobot2').textContent = data.team2.toUpperCase();
-        }
-    });
-}
-
-function actualizarDisplayPuntuacion() {
-    document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
-    document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
-    document.getElementById('faltasRojo').textContent = puntuacion.rojo.faltas;
-    document.getElementById('faltasAzul').textContent = puntuacion.azul.faltas;
-}
-
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', function() {
     inicializarTema();
     inicializarEventos();
-    conectarAlBackend();
 });
 
 function inicializarTema() {
@@ -204,21 +146,6 @@ function encenderLed(color) {
     // Notificar a la ventana del competidor
     if (ventanaCompetidorAbierta) {
         ventanaCompetidorAbierta.postMessage({ evento: 'led_encendido', color: color }, '*');
-    }
-
-    // Emitir al backend
-    if (socket) {
-        try {
-            socket.emit('scoreUpdate', {
-                matchId: matchId,
-                channel: matchId,
-                estado: { fase: color },
-                timestamp: new Date().toISOString()
-            });
-            console.log('📤 LED emitido:', color);
-        } catch (e) {
-            console.error('❌ Error emitiendo LED:', e);
-        }
     }
 }
 
@@ -372,7 +299,6 @@ function actualizarDisplayCrono(elementId, tiempoEnDecimas) {
 // ==================== LÓGICA DE PUNTUACIÓN ====================
 function agregarPunto(evento) {
     const robot = evento.target.dataset.robot;
-    const team = robot === 'rojo' ? 1 : 2;
     
     if (robot === 'rojo') {
         puntuacion.rojo.puntos++;
@@ -383,7 +309,7 @@ function agregarPunto(evento) {
     }
     
     verificarGanador();
-    enviarActualizacionAlBackend(team);
+    enviarActualizacionPuntuacion();
 }
 
 function agregarFalta(evento) {
@@ -397,8 +323,6 @@ function agregarFalta(evento) {
         if (puntuacion.rojo.faltas % 2 === 0) {
             puntuacion.azul.puntos++;
             document.getElementById('puntosAzul').textContent = puntuacion.azul.puntos;
-            // Enviar punto al equipo azul (team 2) por falta de rojo
-            enviarActualizacionAlBackend(2);
         }
     } else if (robot === 'azul') {
         puntuacion.azul.faltas++;
@@ -408,12 +332,11 @@ function agregarFalta(evento) {
         if (puntuacion.azul.faltas % 2 === 0) {
             puntuacion.rojo.puntos++;
             document.getElementById('puntosRojo').textContent = puntuacion.rojo.puntos;
-            // Enviar punto al equipo rojo (team 1) por falta de azul
-            enviarActualizacionAlBackend(1);
         }
     }
     
     verificarGanador();
+    enviarActualizacionPuntuacion();
 }
 
 function verificarGanador() {
@@ -439,35 +362,17 @@ function resetearPuntuacion() {
     document.getElementById('puntosAzul').textContent = '0';
     document.getElementById('faltasRojo').textContent = '0';
     document.getElementById('faltasAzul').textContent = '0';
+    
+    enviarActualizacionPuntuacion();
 }
 
-function enviarActualizacionAlBackend(team) {
+function enviarActualizacionPuntuacion() {
     if (ventanaCompetidorAbierta) {
         ventanaCompetidorAbierta.postMessage({ 
             evento: 'actualizar_puntuacion', 
             puntuacion: puntuacion 
         }, '*');
     }
-
-    // Enviar al backend API para actualizar la BD del torneo
-    const url = `${SERVER}/api/tournaments/match/${matchId}/increment`;
-    console.log('📤 Enviando actualización a:', url);
-    
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-        },
-        body: JSON.stringify({ team: team })
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log('✅ Backend actualizado:', data);
-    })
-    .catch(err => {
-        console.error('❌ Error actualizando backend:', err);
-    });
 }
 
 // ==================== VENTANA NUEVA COMPETIDOR ====================

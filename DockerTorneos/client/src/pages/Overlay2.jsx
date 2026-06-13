@@ -56,14 +56,14 @@ export default function Overlay2() {
           width: 100%;
           display: flex;
           justify-content: center;
-          align-items: flex-start;
-          padding-top: 20px;
+          align-items: center;
         }
 
         .score-bar {
           position: relative;
-          width: 100%;
-          height: 148px;
+          width: 100vw;
+          max-width: 1920px;
+          height: 134px; /* 10% less tall than 148px */
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -142,17 +142,17 @@ export default function Overlay2() {
 
         .team-left {
           justify-content: flex-start;
-          padding-left: 48px;
+          padding-left: 24px;
         }
 
         .team-right {
           justify-content: flex-end;
-          padding-right: 48px;
+          padding-right: 24px;
         }
 
         .team-name {
           font-family: 'Orbitron', sans-serif;
-          font-size: 40px;
+          font-size: 36px; /* 10% smaller */
           font-weight: 700;
           color: #ffffff;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
@@ -170,22 +170,40 @@ export default function Overlay2() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 24px;
+          gap: 12px;
           background: rgba(10, 10, 10, 0.8);
           border: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 8px 40px;
-          border-radius: 8px;
-          min-width: 300px;
-          height: 96px;
+          padding: 10px 30px;
+          border-radius: 12px;
+          min-width: 234px; /* ~10% smaller */
+          height: 101px; /* ~10% smaller */
           transition: opacity 0.5s cubic-bezier(0.77, 0, 0.175, 1), transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        .judge-info {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: 8px;
+          z-index: 4;
+          color: #ddd;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          background: rgba(0,0,0,0.45);
+          padding: 6px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.05);
+          display: flex;
+          gap: 12px;
+          align-items: center;
         }
 
         .score-num {
           font-family: 'Orbitron', sans-serif;
-          font-size: 56px;
+          font-size: 50px; /* ~10% smaller */
           font-weight: 900;
           color: #ffffff;
-          min-width: 60px;
+          min-width: 30px;
           text-align: center;
         }
 
@@ -200,7 +218,7 @@ export default function Overlay2() {
         }
 
         .score-divider {
-          font-size: 28px;
+          font-size: 14px;
           font-weight: 800;
           color: #888;
           letter-spacing: 1px;
@@ -223,19 +241,19 @@ export default function Overlay2() {
         }
 
         .winner-red .team-right {
-          transform: translateX(100px);
+          transform: translateX(50px);
         }
 
         .winner-red .team-left {
-          transform: translateX(-100px);
+          transform: translateX(-50px);
         }
 
         .winner-blue .team-left {
-          transform: translateX(-100px);
+          transform: translateX(-50px);
         }
 
         .winner-blue .team-right {
-          transform: translateX(100px);
+          transform: translateX(50px);
         }
 
         .winner-banner {
@@ -266,25 +284,25 @@ export default function Overlay2() {
         }
 
         .winner-label {
-          font-size: 22px;
+          font-size: 16px;
           font-weight: 800;
           color: #ffeb3b;
           letter-spacing: 4px;
           text-transform: uppercase;
-          margin-bottom: 4px;
+          margin-bottom: 2px;
           text-shadow: 0 2px 4px rgba(0,0,0,0.5);
           animation: pulseOpacity 2s ease-in-out infinite;
         }
 
         .winner-team-name {
           font-family: 'Orbitron', sans-serif;
-          font-size: 52px;
+          font-size: 47px; /* ~10% smaller */
           font-weight: 900;
           color: #ffffff;
           text-shadow: 0 0 15px rgba(255, 255, 255, 0.5), 0 2px 8px rgba(0,0,0,0.8);
           text-transform: uppercase;
           text-align: center;
-          padding: 0 40px;
+          padding: 0 20px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -328,6 +346,11 @@ export default function Overlay2() {
             </span>
           </div>
         )}
+        {/* Judge / Claim info */}
+        <div className="judge-info">
+          {data.claimedBy && <span>Juez (abrió): {data.claimedBy}</span>}
+          {data.lastUpdatedBy && <span>Última actualización: {data.lastUpdatedBy}</span>}
+        </div>
       </div>
     </div>
   )

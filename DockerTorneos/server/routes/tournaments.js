@@ -190,10 +190,13 @@ async function getMatchOverlayPayload(matchId) {
   };
 }
 
-async function broadcastMatchUpdate(matchId) {
+async function broadcastMatchUpdate(matchId, juez = null) {
   try {
     const payload = await getMatchOverlayPayload(matchId);
     if (!payload || !global.overlayNamespace) return;
+
+    // If a judge username is provided, include it in the payload so overlays/streams can show who made the update
+    if (juez) payload.lastUpdatedBy = String(juez);
 
     if (global.broadcastOverlayState) {
       global.broadcastOverlayState(payload);
@@ -740,8 +743,17 @@ router.post('/:id/match/:matchId/claim-overlay', authenticateToken, requireRole(
     }
 
     const payload = await getMatchOverlayPayload(matchId);
-    if (payload && overlayChannel && global.broadcastOverlayState) {
-      global.broadcastOverlayState(payload, overlayChannel);
+    if (payload) {
+      // Attach who claimed/opened the match so the stream overlay can switch to the judge's channel
+      payload.claimedBy = req.user.username;
+      payload.claimedById = req.user.id;
+      payload.channel = overlayChannel ? String(overlayChannel) : undefined;
+
+      if (payload && overlayChannel && global.broadcastOverlayState) {
+        global.broadcastOverlayState(payload, overlayChannel);
+      } else if (payload && overlayChannel && global.overlayNamespace) {
+        global.overlayNamespace.to(`channel_${overlayChannel}`).emit('overlayUpdate', payload);
+      }
     }
 
     res.json({ ok: true, matchId: Number(matchId), overlayChannel });
@@ -766,7 +778,9 @@ router.post('/match/:matchId/increment', authenticateToken, requireRole(['admin'
       const winnerId = match.score1 >= 2 ? match.team1_id : match.team2_id;
       match = await finalizeAndAdvanceMatch(matchId, winnerId);
     } else {
-      await broadcastMatchUpdate(matchId);
+      // If the request included a judge identity, pass it through so overlays include who made the change
+      const juez = req.body?.juez || null;
+      await broadcastMatchUpdate(matchId, juez);
     }
 
     res.json(match);
@@ -854,4 +868,3 @@ router.post('/match/:matchId/reset', authenticateToken, requireRole(['admin', 'j
 });
 
 module.exports = router;
-module.exports.getMatchOverlayPayload = getMatchOverlayPayload;
