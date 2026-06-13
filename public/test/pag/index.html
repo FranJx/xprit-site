@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" href="images/Frontal_NULL1.webp" as="image" type="image/webp">
+<link rel="preload" href="images/Trasero_NULL1.webp" as="image" type="image/webp">
 <style>
   :root{
     --void:#08080b;
@@ -484,7 +486,7 @@
   .artifact-spin{
     transform-style:preserve-3d;
     position:relative;
-    animation: spin 18s cubic-bezier(.42,0,.18,1) infinite;
+    animation: spin 12s linear infinite;
   }
   .artifact:nth-of-type(even) .artifact-spin{
     animation-direction:reverse;
@@ -751,7 +753,7 @@
     .access-grid{ grid-template-columns:1fr; }
     .access-card{ border-right:none; border-bottom:1px solid var(--line); }
     .access-card:last-child{ border-bottom:none; }
-    .manifesto{ height:150vh; }
+    .manifesto{ height:280vh; }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -806,11 +808,11 @@
         <div class="hero-garment" id="heroGarment">
           <div class="garment-face front">
             <!-- Replace with the real product photo: front view, plain dark/transparent background -->
-            <img class="garment-photo" src="images/Frontal_NULL1.png" alt="Oversize tee — front view">
+            <img class="garment-photo" src="images/Frontal_NULL1.webp" alt="Oversize tee — front view">
           </div>
           <div class="garment-face back">
             <!-- Replace with the real product photo: back view, plain dark/transparent background -->
-            <img class="garment-photo" src="images/Trasero_NULL1.png" alt="Oversize tee — back view">
+            <img class="garment-photo" src="images/Trasero_NULL1.webp" alt="Oversize tee — back view">
           </div>
         </div>
       </div>
@@ -851,10 +853,10 @@
         <div class="artifact-tilt">
           <div class="artifact-spin">
             <div class="garment-face front">
-              <img class="garment-photo" src="images/Frontal_NULL1.png" alt="Oversize Tee — Alpha, front view">
+              <img class="garment-photo" src="images/Frontal_NULL1.webp" alt="Oversize Tee — Alpha, front view" loading="lazy">
             </div>
             <div class="garment-face back">
-              <img class="garment-photo" src="images/Trasero_NULL1.png" alt="Oversize Tee — Alpha, back view">
+              <img class="garment-photo" src="images/Trasero_NULL1.webp" alt="Oversize Tee — Alpha, back view" loading="lazy">
             </div>
           </div>
         </div>
