@@ -385,12 +385,21 @@
   /* ---------------------------------------------- */
   .manifesto{
     position:relative;
-    height:200vh;
+    height:35vh;
+    min-height:220px;
+    max-height:300px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
   }
   .manifesto-pin{
-    position:sticky; top:0; height:100vh;
-    display:flex; align-items:center; justify-content:center;
-    overflow:hidden;
+    position:relative;
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
   .m-line{
     position:absolute;
@@ -753,7 +762,6 @@
     .access-grid{ grid-template-columns:1fr; }
     .access-card{ border-right:none; border-bottom:1px solid var(--line); }
     .access-card:last-child{ border-bottom:none; }
-    .manifesto{ height:280vh; }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -1164,36 +1172,24 @@ gsap.to('.hero-content, .scroll-cue', {
   }
 });
 
-/* ---------- manifesto pinned reveal ---------- */
+/* ---------- manifesto automatic vertical carousel ---------- */
 const mLines = gsap.utils.toArray('.m-line');
+const tl = gsap.timeline({ repeat: -1 });
+
 mLines.forEach((line, i)=>{
   gsap.set(line, { y: 40, opacity: 0 });
 });
-ScrollTrigger.create({
-  trigger: '.manifesto',
-  start: 'top top',
-  end: 'bottom bottom',
-  scrub: true,
-  onUpdate: self=>{
-    const p = self.progress * mLines.length;
-    const ease = 0.18; // fraction of each line's segment spent fading in/out
-    mLines.forEach((line,i)=>{
-      const local = p - i; // 0..1 = this line's own segment
-      let opacity = 0, y = 36;
-      if(local > 0 && local < ease){
-        const t = local / ease;
-        opacity = t; y = 36 * (1 - t);
-      } else if(local >= ease && local <= 1 - ease){
-        opacity = 1; y = 0;
-      } else if(local > 1 - ease && local < 1){
-        const t = (local - (1 - ease)) / ease;
-        opacity = 1 - t; y = -36 * t;
-      } else {
-        opacity = 0; y = local <= 0 ? 36 : -36;
-      }
-      gsap.set(line, { opacity, y });
-    });
-  }
+
+mLines.forEach((line, i)=>{
+  const position = i === 0 ? 0 : "-=0.5";
+  tl.fromTo(line, 
+    { y: 40, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' },
+    position
+  )
+  .to(line, 
+    { y: -40, opacity: 0, duration: 0.6, ease: 'power2.in', delay: 2.2 }
+  );
 });
 
 /* ---------- reveal-on-scroll for sections ---------- */
