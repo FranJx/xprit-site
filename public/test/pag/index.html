@@ -260,29 +260,6 @@
     transform-style:preserve-3d;
     backface-visibility:hidden;
   }
-  .garment-core{
-    position:absolute;
-    inset:8% 10%;
-    transform: translateZ(18px);
-    clip-path: polygon(38% 0, 62% 0, 67% 8%, 83% 14%, 93% 28%, 78% 38%, 75% 96%, 25% 96%, 22% 38%, 7% 28%, 17% 14%, 33% 8%);
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 16%, rgba(8,8,12,.95) 17%, rgba(10,10,14,.98) 100%),
-      linear-gradient(90deg, rgba(111,108,240,.22), rgba(0,0,0,.24) 40%, rgba(0,0,0,.55) 60%, rgba(111,108,240,.16));
-    box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,.06),
-      inset 0 -18px 24px rgba(0,0,0,.35),
-      0 0 30px rgba(111,108,240,.12);
-    opacity:.98;
-    pointer-events:none;
-  }
-  .garment-core::before{
-    content:"";
-    position:absolute;
-    inset:18% 34% 56% 34%;
-    border-radius:0 0 42px 42px;
-    background: radial-gradient(circle at 50% 0, rgba(255,255,255,.18), rgba(255,255,255,0) 72%);
-    opacity:.75;
-  }
   .garment-face.back{
     position:absolute; inset:0;
     transform: rotateY(180deg) translateZ(34px);
@@ -297,27 +274,27 @@
   .garment-face::before{
     top:6%;
     bottom:6%;
-    width:12px;
-    border-radius:10px;
-    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(111,108,240,.28) 42%, rgba(0,0,0,.58) 100%);
-    box-shadow: 0 0 32px rgba(111,108,240,.18);
+    width:5px;
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(111,108,240,.08) 40%, rgba(0,0,0,.36) 100%);
+    box-shadow: 0 0 8px rgba(111,108,240,.08);
     transform-style:preserve-3d;
-    opacity:.8;
+    opacity:.32;
   }
   .garment-face.front::before{
-    right: -6px;
-    transform: translateZ(34px) translateX(3px) rotateY(90deg);
+    right: -4px;
+    transform: translateZ(14px) translateX(1px) rotateY(90deg);
   }
   .garment-face.back::before{
-    left: -6px;
-    transform: translateZ(34px) translateX(-3px) rotateY(90deg);
+    left: -4px;
+    transform: translateZ(14px) translateX(-1px) rotateY(90deg);
   }
   .garment-face::after{
-    inset: 8% 12%;
+    inset: 16% 20%;
     border-radius: 999px;
-    background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.08), transparent 60%);
+    background: radial-gradient(circle at 50% 40%, rgba(255,255,255,.05), transparent 62%);
     mix-blend-mode: screen;
-    opacity:.22;
+    opacity:.04;
   }
   .garment-svg path.body{
     fill: var(--graphite);
@@ -556,21 +533,26 @@
     transform: translateZ(26px) translateX(-2px) rotateY(90deg);
   }
   .artifact .garment-photo{
-      filter: drop-shadow(0 38px 84px rgba(0,0,0,.70))
-        drop-shadow(0 0 34px rgba(111,108,240,.10))
-        drop-shadow(0 0 8px rgba(255,255,255,.03));
+    left:50%;
+    top:11%;
+    width:17%;
+    height:78%;
+    transform: translateX(-50%) translateZ(8px);
+    clip-path: polygon(18% 0, 82% 0, 100% 9%, 100% 91%, 82% 100%, 18% 100%, 0 91%, 0 9%);
   }
-  .artifact .garment-core{
-    inset: 7% 12%;
-    transform: translateZ(14px);
-    clip-path: polygon(37% 0, 63% 0, 68% 8%, 84% 15%, 95% 29%, 80% 40%, 76% 97%, 24% 97%, 20% 40%, 5% 29%, 16% 15%, 32% 8%);
-    background:
-      linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.02) 15%, rgba(9,9,12,.96) 16%, rgba(7,7,10,.99) 100%),
-      linear-gradient(90deg, rgba(111,108,240,.16), rgba(0,0,0,.28) 42%, rgba(0,0,0,.60) 58%, rgba(111,108,240,.12));
+      linear-gradient(180deg, rgba(255,255,255,.015) 0%, rgba(255,255,255,.01) 12%, rgba(9,9,12,.95) 13%, rgba(7,7,10,.99) 100%),
+      linear-gradient(90deg, rgba(111,108,240,.04), rgba(0,0,0,.13) 46%, rgba(0,0,0,.28) 54%, rgba(111,108,240,.03));
+    transform: translateZ(8px) scale(.97);
+    clip-path: polygon(44% 0, 56% 0, 62% 7%, 72% 13%, 79% 25%, 69% 36%, 66% 96%, 34% 96%, 31% 36%, 21% 25%, 28% 13%, 38% 7%);
+      inset 0 -10px 12px rgba(0,0,0,.18),
+      0 0 6px rgba(111,108,240,.03);
+    opacity:.50;
     box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,.05),
-      inset 0 -14px 18px rgba(0,0,0,.34),
-      0 0 20px rgba(111,108,240,.08);
+      inset 0 0 0 1px rgba(255,255,255,.03),
+      inset 0 -10px 14px rgba(0,0,0,.28),
+      0 0 12px rgba(111,108,240,.05);
+    opacity:.72;
+    filter: blur(.12px);
   }
 
   .scanline{
@@ -846,7 +828,6 @@
 
       <div class="hero-garment-wrap" data-parallax="-0.04">
         <div class="hero-garment" id="heroGarment">
-          <div class="garment-core" aria-hidden="true"></div>
           <div class="garment-face front">
             <!-- Replace with the real product photo: front view, plain dark/transparent background -->
             <img class="garment-photo" src="images/Frontal_NULL1.png" alt="Oversize tee — front view">
@@ -893,7 +874,6 @@
         <div class="scanline"></div>
         <div class="artifact-tilt">
           <div class="artifact-spin">
-            <div class="garment-core" aria-hidden="true"></div>
             <div class="garment-face front">
               <img class="garment-photo" src="images/Frontal_NULL1.png" alt="Oversize Tee — Alpha, front view">
             </div>
@@ -924,7 +904,6 @@
         <div class="scanline"></div>
         <div class="artifact-tilt">
           <div class="artifact-spin">
-            <div class="garment-core" aria-hidden="true"></div>
             <div class="garment-face front">
               <img class="garment-photo" src="assets/hoodie-front.png" alt="Oversize Hoodie — Mono, front view">
             </div>
@@ -955,7 +934,6 @@
         <div class="scanline"></div>
         <div class="artifact-tilt">
           <div class="artifact-spin">
-            <div class="garment-core" aria-hidden="true"></div>
             <div class="garment-face front">
               <img class="garment-photo" src="assets/locked-front.png" alt="Unindexed artifact, front view">
             </div>
