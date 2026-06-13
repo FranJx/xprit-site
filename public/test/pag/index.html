@@ -183,6 +183,15 @@
       radial-gradient(120% 80% at 50% 110%, rgba(20,20,30,.9) 0%, var(--void) 60%),
       var(--void);
   }
+  .hero::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:150px;
+    background: linear-gradient(to bottom, transparent, var(--void));
+    z-index:4;
+    pointer-events:none;
+  }
   .hero-grid{
     position:absolute; inset:0; z-index:1;
     background-image:
