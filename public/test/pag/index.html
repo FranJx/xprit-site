@@ -262,7 +262,7 @@
   }
   .garment-face.back{
     position:absolute; inset:0;
-    transform: rotateY(180deg) translateZ(34px);
+    transform: rotateY(180deg) translateZ(10px);
   }
   .garment-face::before,
   .garment-face::after{
@@ -274,7 +274,7 @@
   .garment-face::before{
     top:6%;
     bottom:6%;
-    width:5px;
+    width:10px;
     border-radius:12px;
     background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(111,108,240,.08) 40%, rgba(0,0,0,.36) 100%);
     box-shadow: 0 0 8px rgba(111,108,240,.08);
@@ -282,12 +282,12 @@
     opacity:.32;
   }
   .garment-face.front::before{
-    right: -4px;
-    transform: translateZ(14px) translateX(1px) rotateY(90deg);
+    right: -5px;
+    transform: translateZ(-5px) rotateY(90deg);
   }
   .garment-face.back::before{
-    left: -4px;
-    transform: translateZ(14px) translateX(-1px) rotateY(90deg);
+    right: -5px;
+    transform: translateZ(-5px) rotateY(90deg);
   }
   .garment-face::after{
     inset: 16% 20%;
@@ -443,6 +443,8 @@
 
   .artifact-stage{
     position:relative;
+    width: 100%;
+    max-width: 420px;
     aspect-ratio: 4/5;
     border:1px solid var(--line);
     background: linear-gradient(160deg, var(--panel) 0%, var(--ink) 100%);
@@ -518,41 +520,15 @@
   .artifact .garment-face.back::before{
     top: 8%;
     bottom: 8%;
-    width: 10px;
   }
   .artifact .garment-face.front::after,
   .artifact .garment-face.back::after{
     inset: 14% 18%;
   }
-  .artifact .garment-face.front::before{
-    right: -5px;
-    transform: translateZ(26px) translateX(2px) rotateY(90deg);
-  }
-  .artifact .garment-face.back::before{
-    left: -5px;
-    transform: translateZ(26px) translateX(-2px) rotateY(90deg);
-  }
   .artifact .garment-photo{
-    left:50%;
-    top:11%;
-    width:17%;
-    height:78%;
-    transform: translateX(-50%) translateZ(8px);
-    clip-path: polygon(18% 0, 82% 0, 100% 9%, 100% 91%, 82% 100%, 18% 100%, 0 91%, 0 9%);
-  }
-      linear-gradient(180deg, rgba(255,255,255,.015) 0%, rgba(255,255,255,.01) 12%, rgba(9,9,12,.95) 13%, rgba(7,7,10,.99) 100%),
-      linear-gradient(90deg, rgba(111,108,240,.04), rgba(0,0,0,.13) 46%, rgba(0,0,0,.28) 54%, rgba(111,108,240,.03));
-    transform: translateZ(8px) scale(.97);
-    clip-path: polygon(44% 0, 56% 0, 62% 7%, 72% 13%, 79% 25%, 69% 36%, 66% 96%, 34% 96%, 31% 36%, 21% 25%, 28% 13%, 38% 7%);
-      inset 0 -10px 12px rgba(0,0,0,.18),
-      0 0 6px rgba(111,108,240,.03);
-    opacity:.50;
-    box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,.03),
-      inset 0 -10px 14px rgba(0,0,0,.28),
-      0 0 12px rgba(111,108,240,.05);
-    opacity:.72;
-    filter: blur(.12px);
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .scanline{
