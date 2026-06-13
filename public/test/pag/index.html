@@ -224,33 +224,35 @@
   .garment-stage{
     position:absolute; inset:0; z-index:3;
     display:flex; align-items:center; justify-content:center;
-    perspective: 1400px;
+    perspective: 1800px;
   }
   .spotlight{
     position:absolute;
-    width:46vw; height:46vw; max-width:640px; max-height:640px;
+    width:54vw; height:54vw; max-width:760px; max-height:760px;
     border-radius:50%;
-    background: radial-gradient(circle, rgba(255,255,255,.10) 0%, rgba(111,108,240,.06) 38%, transparent 72%);
-    filter: blur(10px);
+    background: radial-gradient(circle, rgba(255,255,255,.12) 0%, rgba(111,108,240,.09) 34%, transparent 74%);
+    filter: blur(12px);
   }
   .silhouette{
     position:absolute;
-    width: clamp(220px, 26vw, 360px);
-    height: clamp(260px, 32vw, 430px);
+    width: clamp(260px, 32vw, 460px);
+    height: clamp(300px, 38vw, 540px);
     border-radius: 50% 50% 38% 38% / 60% 60% 40% 40%;
-    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.05), transparent 60%);
-    filter: blur(40px);
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.07), transparent 56%);
+    filter: blur(52px);
     transform: translateY(8%);
   }
 
   .hero-garment-wrap{
     position:relative; z-index:4;
-    width: clamp(230px, 27vw, 360px);
+    width: clamp(340px, 42vw, 580px);
     transform-style:preserve-3d;
+    filter: drop-shadow(0 55px 120px rgba(0,0,0,.72));
   }
   .hero-garment{
     transform-style:preserve-3d;
     will-change: transform;
+    transform: translateY(4%) rotateX(14deg) rotateY(-20deg) scale(1.22);
   }
   .garment-face{
     backface-visibility:hidden;
@@ -288,8 +290,9 @@
     object-fit: contain;
     object-position: center;
     /* cinematic lift off the dark background */
-    filter: drop-shadow(0 30px 70px rgba(0,0,0,.65))
-            drop-shadow(0 0 40px rgba(111,108,240,.06));
+          filter: drop-shadow(0 48px 110px rgba(0,0,0,.76))
+            drop-shadow(0 0 72px rgba(111,108,240,.18))
+        drop-shadow(0 0 14px rgba(255,255,255,.05));
     -webkit-user-drag:none;
     pointer-events:none;
   }
@@ -435,7 +438,7 @@
   }
 
   .artifact-tilt{
-    width: 56%;
+    width: 72%;
     transform-style:preserve-3d;
     transition: transform .4s cubic-bezier(.2,.8,.2,1);
     position:relative; z-index:2;
@@ -449,8 +452,8 @@
     animation-direction:reverse;
   }
   @keyframes spin{
-    from{ transform:rotateY(0deg); }
-    to{ transform:rotateY(360deg); }
+    from{ transform:rotateX(8deg) rotateY(0deg) scale(1.06); }
+    to{ transform:rotateX(8deg) rotateY(360deg) scale(1.06); }
   }
 
   .scanline{
