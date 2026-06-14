@@ -261,12 +261,13 @@
     width:100%; height:100%; object-fit: contain; object-position: center;
     filter: drop-shadow(0 30px 60px rgba(0,0,0,.68))
             drop-shadow(0 0 24px rgba(111,108,240,.08));
+    transition: filter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
     -webkit-user-drag:none; pointer-events:none;
   }
   .garment-photo-vector{
     padding: 12% 10%;
     color: var(--line-strong);
-    transition: color .3s ease;
+    transition: color .3s ease, filter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .product-stage:hover .garment-photo-vector{
     color: var(--fg-dim);
@@ -295,6 +296,41 @@
   }
   .product-console-line .tag{
     color:var(--signal);
+  }
+
+  /* COLOR SWATCHES */
+  .product-colors {
+    display: flex; gap: 8px; margin-top: 4px; align-items: center;
+  }
+  .color-dot {
+    width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .color-dot:hover {
+    transform: scale(1.25); border-color: var(--fg);
+  }
+  .color-dot.active {
+    box-shadow: 0 0 0 2px var(--void), 0 0 0 3px var(--signal);
+    border-color: var(--fg);
+  }
+
+  .modal-colors {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  .modal-color-dot {
+    width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .modal-color-dot:hover {
+    transform: scale(1.2); border-color: var(--fg);
+  }
+  .modal-color-dot.active {
+    box-shadow: 0 0 0 2px var(--ink), 0 0 0 3px var(--signal);
+    border-color: var(--fg);
+  }
+  .modal-active-color-name {
+    font-size: 0.72rem; color: var(--fg-dim); margin-left: 6px;
+    text-transform: uppercase; letter-spacing: 0.1em;
   }
 
   /* MODAL */
@@ -331,7 +367,7 @@
   .modal-preview{
     aspect-ratio: 4/5; border-radius: 8px; border: 1px solid var(--line);
     background: var(--void); display:flex; align-items:center; justify-content:center;
-    overflow:hidden; position:relative;
+    overflow:hidden; position:relative; perspective: 1200px;
   }
   .modal-details h3{
     font-family:var(--f-display); font-size:1.5rem; font-weight:700; margin-bottom:14px;
@@ -501,6 +537,55 @@ function getVectorSVG(type, text) {
 }
 
 // Build grid items
+// Variant Application and Event Handlers
+window.applyVariant = function(card, variant, index) {
+  const frontImg = card.querySelector('.garment-face.front .garment-photo');
+  const backImg = card.querySelector('.garment-face.back .garment-photo');
+  
+  // Fade out before source swap to prevent visual flash/glitch
+  if (frontImg) frontImg.style.opacity = '0';
+  if (backImg) backImg.style.opacity = '0';
+  
+  setTimeout(() => {
+    if (variant.images) {
+      if (frontImg) {
+        frontImg.src = variant.images.front;
+        frontImg.style.filter = '';
+      }
+      if (backImg) {
+        backImg.src = variant.images.back;
+        backImg.style.filter = '';
+      }
+    }
+    
+    // Fade back in after source change
+    setTimeout(() => {
+      if (frontImg) frontImg.style.opacity = '1';
+      if (backImg) backImg.style.opacity = '1';
+    }, 50);
+  }, 150);
+  
+  const valSpan = card.querySelector('.product-console-line .val');
+  if (valSpan && variant.color) {
+    valSpan.textContent = variant.color;
+  }
+  
+  const dots = card.querySelectorAll('.color-dot');
+  dots.forEach((dot, dIdx) => {
+    dot.classList.toggle('active', dIdx === index);
+  });
+};
+
+window.manualSelectVariant = function(productId, index) {
+  const p = products.find(prod => prod.id === productId);
+  if (!p || !p.variants) return;
+  const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+  if (!card) return;
+  
+  card.dataset.currentVariant = index;
+  applyVariant(card, p.variants[index], index);
+};
+
 const grid = document.getElementById('catalogGrid');
 function renderCatalog(filter = "all") {
   grid.innerHTML = "";
@@ -515,6 +600,10 @@ function renderCatalog(filter = "all") {
     const card = document.createElement('article');
     card.className = "product-card";
     card.setAttribute('data-id', p.id);
+    
+    // Fetch active variant from dataset if returning from modal, default to 0
+    const initialIdx = parseInt(card.dataset.currentVariant || 0);
+    card.dataset.currentVariant = initialIdx;
 
     // Front content
     let frontContent = "";
@@ -529,8 +618,24 @@ function renderCatalog(filter = "all") {
     if (p.images) {
       backContent = `<img class="garment-photo" src="${p.images.back}" alt="${p.name} - back">`;
     } else {
-      // Rotate same vector but maybe mirroring or alternate print
       backContent = getVectorSVG(p.vectorType, "BACK // " + p.id);
+    }
+
+    // Swatches HTML
+    let colorsHTML = "";
+    let colorNameLabel = p.size; // fallback to size if no variants
+    if (p.variants && p.variants.length > 1) {
+      colorNameLabel = p.variants[initialIdx].color;
+      colorsHTML = `
+        <div class="product-colors">
+          ${p.variants.map((v, idx) => `
+            <span class="color-dot ${idx === initialIdx ? 'active' : ''}" 
+                  style="background-color: ${v.hex};" 
+                  title="${v.color}"
+                  onclick="event.stopPropagation(); manualSelectVariant('${p.id}', ${idx})"></span>
+          `).join('')}
+        </div>
+      `;
     }
 
     card.innerHTML = `
@@ -555,12 +660,29 @@ function renderCatalog(filter = "all") {
           <h3 class="product-name">${p.name}</h3>
           <span class="product-price">${p.price}</span>
         </div>
-        <div class="product-console-line">&gt; tag: <span class="tag">--${p.category}</span> // t: <span class="val">${p.size}</span></div>
+        <div class="product-console-line">&gt; tag: <span class="tag">--${p.category}</span> // color: <span class="val">${colorNameLabel}</span></div>
+        ${colorsHTML}
       </div>
     `;
 
     grid.appendChild(card);
     
+    // Apply initial filter if returning with non-zero variant
+    if (p.variants && p.variants.length > 1 && initialIdx > 0) {
+      applyVariant(card, p.variants[initialIdx], initialIdx);
+    }
+    
+    // Auto color-shifting after 360-degree rotation iteration
+    if (p.variants && p.variants.length > 1) {
+      const spinEl = card.querySelector('.product-spin');
+      spinEl.addEventListener('animationiteration', () => {
+        let currentIdx = parseInt(card.dataset.currentVariant || 0);
+        currentIdx = (currentIdx + 1) % p.variants.length;
+        card.dataset.currentVariant = currentIdx;
+        applyVariant(card, p.variants[currentIdx], currentIdx);
+      });
+    }
+
     // Add hover sound or class logic for cursor
     const stage = card.querySelector('.product-stage');
     stage.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
@@ -693,16 +815,97 @@ window.addEventListener('resize', ()=>{ resize(); initParticles(); });
 const modal = document.getElementById('productModal');
 const modalClose = document.getElementById('modalClose');
 
+window.updateModalWhatsAppLink = function(productId, colorName) {
+  const p = products.find(prod => prod.id === productId);
+  if (!p) return;
+  const lang = currentLang;
+  const wMsg = encodeURIComponent(
+    lang === 'en' 
+      ? `Hello NULL! I would like to order: ${p.name} (${p.id}) in Color: ${colorName}, Size: [Size Here].`
+      : `¡Hola NULL! Me gustaría encargar: ${p.name} (${p.id}) en Color: ${colorName}, Talle: [Talle Aquí].`
+  );
+  const buyBtn = document.getElementById('modalBuyBtn');
+  if (buyBtn) {
+    buyBtn.href = `https://wa.me/5491112345678?text=${wMsg}`;
+  }
+};
+
+window.selectModalVariant = function(productId, index) {
+  const p = products.find(prod => prod.id === productId);
+  if (!p || !p.variants) return;
+  
+  const frontImg = document.querySelector('.modal-preview-img-front');
+  const backImg = document.querySelector('.modal-preview-img-back');
+  
+  if (frontImg) {
+    frontImg.style.opacity = '0';
+    setTimeout(() => {
+      if (p.variants[index].images) {
+        frontImg.src = p.variants[index].images.front;
+      }
+      frontImg.style.opacity = '1';
+    }, 150);
+  }
+  
+  if (backImg) {
+    backImg.style.opacity = '0';
+    setTimeout(() => {
+      if (p.variants[index].images) {
+        backImg.src = p.variants[index].images.back;
+      }
+      backImg.style.opacity = '1';
+    }, 150);
+  }
+  
+  const colorNameSpan = document.getElementById('modalActiveColorName');
+  if (colorNameSpan) {
+    colorNameSpan.textContent = p.variants[index].color;
+  }
+  
+  const dots = document.querySelectorAll('.modal-color-dot');
+  dots.forEach((dot, dIdx) => {
+    dot.classList.toggle('active', dIdx === index);
+  });
+  
+  // Sync back to catalog card
+  const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+  if (card) {
+    card.dataset.currentVariant = index;
+    applyVariant(card, p.variants[index], index);
+  }
+  
+  // Update WhatsApp link
+  updateModalWhatsAppLink(productId, p.variants[index].color);
+};
+
 function openDetails(id) {
   const p = products.find(prod => prod.id === id);
   if (!p) return;
+
+  const card = document.querySelector(`.product-card[data-id="${p.id}"]`);
+  const initialVariantIdx = card ? parseInt(card.dataset.currentVariant || 0) : 0;
+  const initialColor = p.variants ? p.variants[initialVariantIdx].color : "";
+  const initialImages = p.variants && p.variants[initialVariantIdx].images 
+    ? p.variants[initialVariantIdx].images 
+    : p.images;
 
   const content = document.getElementById('modalGridContent');
   
   // Set preview container
   let preview = "";
-  if (p.images) {
-    preview = `<img class="garment-photo" src="${p.images.front}" alt="${p.name}">`;
+  if (initialImages) {
+    preview = `
+      <div class="product-tilt" style="width: 100%;">
+        <div class="product-spin">
+          <div class="garment-face front">
+            <img class="garment-photo modal-preview-img-front" src="${initialImages.front}" alt="${p.name} - front">
+          </div>
+          <div class="garment-face back">
+            <img class="garment-photo modal-preview-img-back" src="${initialImages.back}" alt="${p.name} - back">
+          </div>
+        </div>
+      </div>
+    `;
   } else {
     preview = getVectorSVG(p.vectorType, p.textPrint);
   }
@@ -713,12 +916,25 @@ function openDetails(id) {
   const tagLabel = lang === 'en' ? 'Asset ID' : 'ID Archivo';
   const buyText = lang === 'en' ? 'order via whatsapp' : 'ordenar por whatsapp';
 
-  // Prefecture messages for WhatsApp order link
-  const wMessage = encodeURIComponent(
-    lang === 'en' 
-      ? `Hello NULL! I would like to order: ${p.name} (${p.id}) in Size: [Size Here].`
-      : `¡Hola NULL! Me gustaría encargar: ${p.name} (${p.id}) en Talle: [Talle Aquí].`
-  );
+  // Swatches for the details modal
+  let colorsRow = "";
+  if (p.variants && p.variants.length > 1) {
+    const colorLabel = lang === 'en' ? 'Colors' : 'Colores';
+    colorsRow = `
+      <div><dt>${colorLabel}</dt>
+      <dd>
+        <div class="modal-colors">
+          ${p.variants.map((v, idx) => `
+            <span class="modal-color-dot ${idx === initialVariantIdx ? 'active' : ''}" 
+                  style="background-color: ${v.hex};" 
+                  title="${v.color}"
+                  onclick="selectModalVariant('${p.id}', ${idx})"></span>
+          `).join('')}
+          <span class="modal-active-color-name" id="modalActiveColorName">${initialColor}</span>
+        </div>
+      </dd></div>
+    `;
+  }
 
   content.innerHTML = `
     <div class="modal-preview">
@@ -732,11 +948,15 @@ function openDetails(id) {
         <div><dt>Sizes</dt><dd>${p.size}</dd></div>
         <div><dt>${fitLabel}</dt><dd>${p.specs[lang].fit}</dd></div>
         <div><dt>${fabricLabel}</dt><dd>${p.specs[lang].fabric}</dd></div>
+        ${colorsRow}
       </dl>
       <p class="modal-note">${p.specs[lang].note}</p>
-      <a class="buy-btn" href="https://wa.me/5491112345678?text=${wMessage}" target="_blank" rel="noopener">${buyText}</a>
+      <a class="buy-btn" href="#" id="modalBuyBtn" target="_blank" rel="noopener">${buyText}</a>
     </div>
   `;
+
+  // Bind initial WhatsApp message link
+  updateModalWhatsAppLink(p.id, initialColor || 'Original');
 
   modal.classList.add('show');
 }

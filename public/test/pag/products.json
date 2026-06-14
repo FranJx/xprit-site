@@ -72,7 +72,25 @@
     "images": {
       "front": "images/Frontal_magical.webp",
       "back": "images/Trasero_magical.webp"
-    }
+    },
+    "variants": [
+      {
+        "color": "Original",
+        "hex": "#0e0e13",
+        "images": {
+          "front": "images/Frontal_magical.webp",
+          "back": "images/Trasero_magical.webp"
+        }
+      },
+      {
+        "color": "Inverted",
+        "hex": "#edeef1",
+        "images": {
+          "front": "images/Frontal_magical_C2.webp",
+          "back": "images/Trasero_magical_C2.webp"
+        }
+      }
+    ]
   },
   {
     "id": "ART.09",
@@ -98,5 +116,48 @@
       "front": "images/Frontal_mimicute.webp",
       "back": "images/Trasero_mimicute.webp"
     }
+  },
+  {
+    "id": "ART.10",
+    "name": "Actually Tee",
+    "category": "streetwear",
+    "tag": "OS.TEE",
+    "price": "$24.000 ARS",
+    "size": "S / M / L / XL",
+    "sex": "unisex",
+    "specs": {
+      "en": {
+        "fit": "Oversized",
+        "fabric": "240gsm cotton",
+        "note": "// \"actually\" statement print. debugged cyberpunk interface compiler layout."
+      },
+      "es": {
+        "fit": "Oversize",
+        "fabric": "algodón 240gsm",
+        "note": "// estampa de declaración \"actually\". diseño de compilador de interfaz cyberpunk depurado."
+      }
+    },
+    "images": {
+      "front": "images/Frontal_actually.webp",
+      "back": "images/Trasero_actually.webp"
+    },
+    "variants": [
+      {
+        "color": "Original",
+        "hex": "#0e0e13",
+        "images": {
+          "front": "images/Frontal_actually.webp",
+          "back": "images/Trasero_actually.webp"
+        }
+      },
+      {
+        "color": "Inverted",
+        "hex": "#edeef1",
+        "images": {
+          "front": "images/Frontal_actually_C2.webp",
+          "back": "images/Trasero_actually_C2.webp"
+        }
+      }
+    ]
   }
 ]
