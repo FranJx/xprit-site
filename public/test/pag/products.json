@@ -1,0 +1,142 @@
+[
+  {
+    "id": "ART.01",
+    "name": "Oversize Tee — Alpha",
+    "category": "streetwear",
+    "tag": "OS.TEE",
+    "price": "$24.000 ARS",
+    "size": "S / M / L / XL",
+    "sex": "unisex",
+    "specs": {
+      "en": {
+        "fit": "Oversized",
+        "fabric": "240gsm cotton",
+        "note": "// raw hem, dropped shoulder seam, single back-mark print. built to be the only logo you need."
+      },
+      "es": {
+        "fit": "Oversize",
+        "fabric": "algodón 240gsm",
+        "note": "// ruedo crudo, costura de hombro caído, una sola marca al dorso. la única etiqueta que vas a necesitar."
+      }
+    },
+    "images": {
+      "front": "images/Frontal_NULL1.webp",
+      "back": "images/Trasero_NULL1.webp"
+    }
+  },
+  {
+    "id": "ART.02",
+    "name": "Syntax Error Hoodie",
+    "category": "cyber",
+    "tag": "OS.HOOD",
+    "price": "$42.000 ARS",
+    "size": "M / L / XL",
+    "sex": "unisex",
+    "specs": {
+      "en": {
+        "fit": "Oversized",
+        "fabric": "340gsm fleece",
+        "note": "// heavyweight fleece, custom compiler traceback print on chest. quiet from a distance, error up close."
+      },
+      "es": {
+        "fit": "Oversize",
+        "fabric": "frisa pesada 340gsm",
+        "note": "// frisa pesada, estampa con reporte de error del compilador en el pecho. discreta de lejos, error de cerca."
+      }
+    },
+    "vectorType": "hoodie",
+    "textPrint": "ERROR: SYNTAX_ERR"
+  },
+  {
+    "id": "ART.03",
+    "name": "Kernel Panic Tee",
+    "category": "meme",
+    "tag": "REG.TEE",
+    "price": "$22.000 ARS",
+    "size": "S / M / L / XL",
+    "sex": "unisex",
+    "specs": {
+      "en": {
+        "fit": "Regular Boxy",
+        "fabric": "200gsm cotton",
+        "note": "// front blue screen print. standard boxy fit, double stitched. a critical system breakdown as streetwear."
+      },
+      "es": {
+        "fit": "Regular Boxy",
+        "fabric": "algodón 200gsm",
+        "note": "// estampa delantera estilo pantalla azul. calce boxy clásico, doble costura. caída crítica del sistema hecha streetwear."
+      }
+    },
+    "vectorType": "tee",
+    "textPrint": "KERNEL PANIC"
+  },
+  {
+    "id": "ART.04",
+    "name": "Dystopian Cargo Pants",
+    "category": "streetwear",
+    "tag": "TACT.CARGO",
+    "price": "$48.000 ARS",
+    "size": "38 / 40 / 42 / 44 / 46",
+    "sex": "unisex",
+    "specs": {
+      "en": {
+        "fit": "Relaxed Cargo",
+        "fabric": "Ripstop cotton",
+        "note": "// tactical modular pocket system, adjustable drawstring cuffs. engineered for high mobility and tech utility."
+      },
+      "es": {
+        "fit": "Relaxed Cargo",
+        "fabric": "Algodón Ripstop",
+        "note": "// sistema de bolsillos modulares tácticos, puños con cordón ajustable. diseñado para alta movilidad y utilidad técnica."
+      }
+    },
+    "vectorType": "pants",
+    "textPrint": "SYS.INIT"
+  },
+  {
+    "id": "ART.05",
+    "name": "Null Pointer Dad Cap",
+    "category": "meme",
+    "tag": "STR.CAP",
+    "price": "$14.000 ARS",
+    "size": "Adjustable",
+    "sex": "unisex",
+    "specs": {
+      "en": {
+        "fit": "Classic Dad Cap",
+        "fabric": "100% cotton drill",
+        "note": "// embroidered NullPointerException signature. buckle closure. points to nothing, fits everything."
+      },
+      "es": {
+        "fit": "Dad Cap Clásica",
+        "fabric": "gabardina 100% algodón",
+        "note": "// firma NullPointerException bordada. hebilla de ajuste. apunta a la nada, combina con todo."
+      }
+    },
+    "vectorType": "cap",
+    "textPrint": "NULL"
+  },
+  {
+    "id": "ART.06",
+    "name": "Reflective Signal Windbreaker",
+    "category": "cyber",
+    "tag": "TECH.JACKET",
+    "price": "$55.000 ARS",
+    "size": "S / M / L",
+    "sex": "unisex",
+    "specs": {
+      "en": {
+        "fit": "Standard Tech",
+        "fabric": "Waterproof ripstop",
+        "note": "// silver reflective graphics, high collar with storm hood, waterproof zippers. shines under direct signal beam."
+      },
+      "es": {
+        "fit": "Tech Estándar",
+        "fabric": "Ripstop impermeable",
+        "note": "// estampas reflectivas plateadas, cuello alto con capucha de tormenta, cierres impermeables. brilla bajo haz de luz directo."
+      }
+    },
+    "vectorType": "jacket",
+    "textPrint": "SIGNAL_GLOW"
+  }
+]
