@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NULL. — CATALOG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#08080b;
+    --ink:#0e0e13;
+    --panel:#14141b;
+    --graphite:#1d1d26;
+    --line: rgba(237,237,240,.08);
+    --line-strong: rgba(237,237,240,.16);
+    --fg:#edeef1;
+    --fg-dim:#86868f;
+    --fg-faint:#4c4c55;
+    --signal:#6f6cf0;
+    --signal-soft: rgba(111,108,240,.14);
+    --signal-glow: rgba(111,108,240,.35);
+    --ok:#7de0c0;
+
+    --f-display:'Space Grotesk', sans-serif;
+    --f-sans:'Zen Kaku Gothic New','Hiragino Kaku Gothic ProN', sans-serif;
+    --f-mono:'JetBrains Mono', monospace;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{
+    background:var(--void);
+    color:var(--fg);
+    font-family:var(--f-sans);
+    overflow-x:hidden;
+    cursor:none;
+  }
+
+  ::selection{ background:var(--signal-soft); color:var(--fg); }
+  a{ color:inherit; text-decoration:none; }
+
+  /* CUSTOM CURSOR */
+  .cursor, .cursor-ring{
+    position:fixed; top:0; left:0; pointer-events:none;
+    z-index:9999; transform:translate(-50%,-50%);
+    mix-blend-mode:difference;
+  }
+  .cursor{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--fg);
+    transition: width .25s ease, height .25s ease, background .25s ease;
+  }
+  .cursor-ring{
+    width:32px; height:32px; border-radius:50%;
+    border:1px solid var(--line-strong);
+    transition: width .35s cubic-bezier(.2,.8,.2,1), height .35s cubic-bezier(.2,.8,.2,1),
+                border-color .35s ease, opacity .35s ease;
+  }
+  body.hover-active .cursor{ width:0; height:0; }
+  body.hover-active .cursor-ring{
+    width:64px; height:64px; border-color:var(--signal);
+  }
+  @media (hover:none), (pointer:coarse){
+    .cursor, .cursor-ring{ display:none; }
+    body{ cursor:auto; }
+  }
+
+  /* NOISE OVERLAY */
+  .noise{
+    position:fixed; inset:0; z-index:60;
+    pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain 1s steps(6) infinite;
+  }
+  @keyframes grain{
+    0%{ transform:translate(0,0); }
+    20%{ transform:translate(-2%,2%); }
+    40%{ transform:translate(2%,-1%); }
+    60%{ transform:translate(-1%,-2%); }
+    80%{ transform:translate(1%,2%); }
+    100%{ transform:translate(0,0); }
+  }
+
+  #fx{ position:fixed; inset:0; z-index:1; pointer-events:none; }
+
+  /* NAV */
+  .nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:28px clamp(24px,5vw,64px);
+    font-family:var(--f-mono); font-size:.72rem; letter-spacing:.18em;
+    pointer-events:none;
+    background: linear-gradient(to bottom, var(--void) 40%, transparent);
+  }
+  .nav .logo{
+    font-family:var(--f-display); font-size:1.05rem; font-weight:700;
+    letter-spacing:.06em; pointer-events:auto;
+  }
+  .nav .logo .dot{ color:var(--signal); }
+  .nav-right{ display:flex; align-items:center; gap:22px; pointer-events:none; }
+  .nav-link{ pointer-events:auto; color:var(--fg-dim); transition:color .35s ease; }
+  .nav-link:hover{ color:var(--fg); }
+  .nav .status{ display:flex; align-items:center; gap:10px; color:var(--fg-dim); text-transform:uppercase; }
+  .dot-status{
+    width:6px; height:6px; border-radius:50%; background:var(--signal);
+    box-shadow:0 0 8px var(--signal-glow); animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:.4; transform:scale(.85); }
+    50%{ opacity:1; transform:scale(1.15); }
+  }
+  .lang-switch{
+    pointer-events:auto; display:flex; align-items:center; gap:7px;
+    background:none; border:1px solid var(--line-strong); border-radius:20px;
+    padding:6px 12px; font-family:var(--f-mono); font-size:.68rem; letter-spacing:.18em;
+    color:var(--fg-dim); text-transform:uppercase; cursor:none; transition: border-color .35s ease;
+  }
+  .lang-switch:hover{ border-color:var(--signal); }
+  .lang-switch .lang-opt{ color:var(--fg-faint); transition: color .35s ease; }
+  .lang-switch .lang-opt.active{ color:var(--fg); }
+  .lang-switch .lang-sep{ color:var(--fg-faint); opacity:.5; }
+
+  /* CATALOG HERO */
+  .catalog-hero{
+    position:relative; z-index:2;
+    padding: 140px clamp(24px,5vw,64px) 30px;
+    border-bottom: 1px solid var(--line);
+  }
+  .catalog-title{
+    font-family:var(--f-mono); font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+    font-weight: 500; color: var(--signal);
+  }
+  .catalog-subtitle{
+    font-family:var(--f-mono); font-size: .75rem; letter-spacing: .05em;
+    color: var(--fg-dim); margin-top: 8px;
+  }
+
+  /* FILTERS */
+  .catalog-filters{
+    position:relative; z-index:2;
+    display:flex; gap:14px;
+    padding: 30px clamp(24px,5vw,64px);
+    flex-wrap:wrap;
+  }
+  .filter-btn{
+    background:none; border: 1px solid var(--line-strong); border-radius: 4px;
+    padding: 8px 16px; color: var(--fg-dim); font-family: var(--f-mono);
+    font-size: .7rem; letter-spacing: .1em; cursor:none; transition: all .3s ease;
+    pointer-events:auto; text-transform:uppercase;
+  }
+  .filter-btn:hover, .filter-btn.active{
+    border-color: var(--signal); color: var(--fg); background: var(--signal-soft);
+  }
+
+  /* GRID */
+  .catalog-grid{
+    position:relative; z-index:2;
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 40px;
+    padding: 0 clamp(24px,5vw,64px) 100px;
+  }
+
+  /* CARDS */
+  .product-card{
+    display: flex; flex-direction: column; gap: 18px;
+    pointer-events: auto; opacity: 1; transform: translateY(0);
+    transition: opacity .4s ease, transform .4s ease;
+  }
+  .product-card.hidden{
+    opacity: 0; transform: translateY(20px); pointer-events: none;
+    position: absolute; width: 0; height: 0; overflow: hidden; margin: 0; padding: 0; border: none;
+  }
+  
+  .product-stage{
+    position:relative; aspect-ratio: 4/5;
+    border:1px solid var(--line);
+    background: linear-gradient(160deg, var(--panel) 0%, var(--ink) 100%);
+    border-radius:24px; display:flex; align-items:center; justify-content:center;
+    overflow:hidden; perspective:1200px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.04),
+      inset 0 0 80px rgba(111,108,240,.06),
+      0 26px 90px rgba(0,0,0,.40);
+    cursor: pointer;
+    transition: border-color .35s ease, box-shadow .35s ease;
+  }
+  .product-stage:hover{
+    border-color: var(--line-strong);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.06),
+      inset 0 0 80px rgba(111,108,240,.12),
+      0 30px 100px rgba(0,0,0,.50);
+  }
+  .product-stage::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(60% 50% at 50% 40%, rgba(111,108,240,.10), transparent 70%);
+  }
+  .product-stage::after{
+    content:""; position:absolute; inset: 14% 18%; border-radius: 999px;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.09), transparent 60%);
+    filter: blur(18px); opacity:.45; pointer-events:none;
+  }
+
+  .hud-corner{
+    position:absolute; width:18px; height:18px;
+    border-color: var(--line-strong); z-index:3; opacity:.7;
+  }
+  .hud-corner.tl{ top:14px; left:14px; border-top:1px solid; border-left:1px solid; }
+  .hud-corner.tr{ top:14px; right:14px; border-top:1px solid; border-right:1px solid; }
+  .hud-corner.bl{ bottom:14px; left:14px; border-bottom:1px solid; border-left:1px solid; }
+  .hud-corner.br{ bottom:14px; right:14px; border-bottom:1px solid; border-right:1px solid; }
+
+  .hud-id{
+    position:absolute; top:14px; left:40px; z-index:3;
+    font-family:var(--f-mono); font-size:.58rem; letter-spacing:.18em;
+    color:var(--fg-faint); text-transform:uppercase;
+  }
+  .scanline{
+    position:absolute; left:0; right:0; height:30%;
+    background: linear-gradient(to bottom, transparent, rgba(111,108,240,.07), transparent);
+    animation: scan 6s ease-in-out infinite; z-index:3; pointer-events:none; mix-blend-mode:screen;
+  }
+  @keyframes scan{ 0%{ top:-30%; } 50%{ top:100%; } 100%{ top:-30%; } }
+
+  .product-tilt{
+    width: 90%; aspect-ratio: 4/5; transform-style:preserve-3d;
+    transition: transform .4s cubic-bezier(.2,.8,.2,1); position:relative; z-index:2;
+  }
+  .product-spin{
+    transform-style:preserve-3d; position:relative; width:100%; height:100%;
+    animation: spin 12s linear infinite;
+    animation-play-state: paused;
+  }
+  .product-stage:hover .product-spin{
+    animation-play-state: running;
+  }
+  @keyframes spin{
+    from{ transform:rotateX(10deg) rotateY(0deg); }
+    to{ transform:rotateX(10deg) rotateY(360deg); }
+  }
+
+  .garment-face{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d; backface-visibility:hidden;
+  }
+  .garment-face.back{
+    position:absolute; inset:0;
+    transform: rotateY(180deg) translateZ(10px);
+  }
+  .garment-face::before{
+    content:""; position:absolute; top:8%; bottom:8%; width:10px; border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(111,108,240,.08) 40%, rgba(0,0,0,.36) 100%);
+    box-shadow: 0 0 8px rgba(111,108,240,.08); transform-style:preserve-3d; opacity:.32;
+  }
+  .garment-face.front::before{
+    right: -5px; transform: translateZ(-5px) rotateY(90deg);
+  }
+  .garment-face.back::before{
+    right: -5px; transform: translateZ(-5px) rotateY(90deg);
+  }
+
+  .garment-photo, .garment-photo-vector{
+    width:100%; height:100%; object-fit: contain; object-position: center;
+    filter: drop-shadow(0 30px 60px rgba(0,0,0,.68))
+            drop-shadow(0 0 24px rgba(111,108,240,.08));
+    -webkit-user-drag:none; pointer-events:none;
+  }
+  .garment-photo-vector{
+    padding: 12% 10%;
+    color: var(--line-strong);
+    transition: color .3s ease;
+  }
+  .product-stage:hover .garment-photo-vector{
+    color: var(--fg-dim);
+  }
+
+  /* PRODUCT INFO */
+  .product-info{
+    display:flex; flex-direction:column; gap:8px;
+    font-family:var(--f-mono); letter-spacing:.05em;
+  }
+  .product-meta-header{
+    display:flex; justify-content:space-between; align-items:baseline;
+  }
+  .product-name{
+    font-family:var(--f-display); font-size:1.15rem; font-weight:600;
+    letter-spacing:0; color:var(--fg);
+  }
+  .product-price{
+    color:var(--ok); font-size:0.9rem;
+  }
+  .product-console-line{
+    font-size:0.7rem; color:var(--fg-faint);
+  }
+  .product-console-line .val{
+    color:var(--fg-dim);
+  }
+  .product-console-line .tag{
+    color:var(--signal);
+  }
+
+  /* MODAL */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:300;
+    background: rgba(8,8,11,.88); backdrop-filter: blur(8px);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition: opacity .4s ease;
+  }
+  .modal-overlay.show{ opacity:1; pointer-events:auto; }
+  .modal-box{
+    border:1px solid var(--line-strong); background:var(--ink);
+    padding:40px; width: min(650px, 92%);
+    box-shadow:0 0 60px rgba(111,108,240,.18); border-radius:12px;
+    position:relative; transform: scale(0.95);
+    transition: transform .4s cubic-bezier(.2,.8,.2,1);
+  }
+  .modal-overlay.show .modal-box{ transform: scale(1); }
+  .modal-close{
+    position:absolute; top:20px; right:20px; background:none; border:none;
+    color:var(--fg-dim); font-size:1.2rem; cursor:none; pointer-events:auto;
+    transition: color .3s ease;
+  }
+  .modal-close:hover{ color:var(--fg); }
+  
+  .modal-grid{
+    display:grid; grid-template-columns: 1fr 1.2fr; gap:30px;
+  }
+  @media (max-width: 600px) {
+    .modal-grid { grid-template-columns: 1fr; gap: 20px; }
+    .modal-box { padding: 30px 20px 20px; }
+  }
+
+  .modal-preview{
+    aspect-ratio: 4/5; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--void); display:flex; align-items:center; justify-content:center;
+    overflow:hidden; position:relative;
+  }
+  .modal-details h3{
+    font-family:var(--f-display); font-size:1.5rem; font-weight:700; margin-bottom:14px;
+  }
+  .modal-details dl{
+    display:grid; grid-template-columns: max-content 1fr; gap:8px 18px;
+    font-family:var(--f-mono); font-size:.78rem; margin-bottom:24px;
+  }
+  .modal-details dt{ color:var(--fg-faint); text-transform:uppercase; letter-spacing:.15em; }
+  .modal-details dd{ color:var(--fg-dim); }
+  .modal-details dd.ok{ color:var(--ok); }
+  
+  .modal-note{
+    font-family:var(--f-mono); font-size:.72rem; color:var(--fg-faint);
+    line-height:1.6; border-left:1px solid var(--line-strong);
+    padding-left:14px; margin-bottom:28px;
+  }
+  .buy-btn{
+    display:block; text-align:center; width:100%; background:none;
+    border:1px solid var(--signal); color:var(--fg); font-family:var(--f-mono);
+    font-size:.75rem; letter-spacing:.18em; text-transform:uppercase;
+    padding:12px; border-radius:4px; cursor:none; pointer-events:auto;
+    transition: background .3s ease, box-shadow .3s ease;
+  }
+  .buy-btn:hover{
+    background: var(--signal-soft);
+    box-shadow: 0 0 15px var(--signal-glow);
+  }
+
+  /* FOOTER */
+  .footer{
+    position:relative; z-index:2; border-top: 1px solid var(--line);
+    padding: 40px clamp(24px,5vw,64px); display:flex; justify-content:space-between;
+    align-items:center; flex-wrap:wrap; gap:16px;
+    font-family:var(--f-mono); font-size:.65rem; color:var(--fg-faint);
+    letter-spacing:.12em; text-transform:uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+<canvas id="fx"></canvas>
+<div class="cursor"></div>
+<div class="cursor-ring"></div>
+
+<header class="nav">
+  <a href="index.html" class="logo">NULL<span class="dot">.</span></a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link" data-i18n="navHome">HOME</a>
+    <button class="lang-switch" id="langSwitch" aria-label="Switch language / Cambiar idioma">
+      <span class="lang-opt active" data-lang-opt="en">EN</span>
+      <span class="lang-sep">/</span>
+      <span class="lang-opt" data-lang-opt="es">ES</span>
+    </button>
+    <div class="status"><span class="dot-status"></span><span data-i18n="status">SYSTEM://ONLINE</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- CATALOG HERO -->
+  <section class="catalog-hero">
+    <h1 class="catalog-title" id="catalogHeroTitle">&gt; SELECT_ARTIFACT --ALL</h1>
+    <p class="catalog-subtitle" data-i18n="catalogSub">// indexing available clothing. status: 200 ok</p>
+  </section>
+
+  <!-- FILTERS -->
+  <section class="catalog-filters">
+    <button class="filter-btn active" data-filter="all">all_items</button>
+    <button class="filter-btn" data-filter="cyber">--cyber</button>
+    <button class="filter-btn" data-filter="streetwear">--streetwear</button>
+    <button class="filter-btn" data-filter="meme">--meme</button>
+  </section>
+
+  <!-- PRODUCT GRID -->
+  <section class="catalog-grid" id="catalogGrid">
+    <!-- Rendered dynamically by Javascript -->
+  </section>
+</main>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-grid" id="modalGridContent">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <span data-i18n="copyright">© 2026 NULL. — All signals reserved.</span>
+  <span data-i18n="terminalStatus">drop_001 :: live</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+/* ===================================================================
+   NULL. — CATALOG PAGE SCRIPT
+   - products definition with vector blueprint backups
+   - interactive filter logic
+   - specs modal ordering system
+   - custom cursor & galaxy constellation canvas
+   - language translation support
+=================================================================== */
+
+// Products database
+const products = [
+  {
+    id: "ART.01",
+    name: "Oversize Tee — Alpha",
+    category: "streetwear",
+    tag: "OS.TEE",
+    price: "$24.000 ARS",
+    size: "S / M / L / XL",
+    specs: {
+      en: { fit: "Oversized", fabric: "240gsm cotton", note: "// raw hem, dropped shoulder seam, single back-mark print. built to be the only logo you need." },
+      es: { fit: "Oversize", fabric: "algodón 240gsm", note: "// ruedo crudo, costura de hombro caído, una sola marca al dorso. la única etiqueta que vas a necesitar." }
+    },
+    images: {
+      front: "images/Frontal_NULL1.webp",
+      back: "images/Trasero_NULL1.webp"
+    }
+  },
+  {
+    id: "ART.02",
+    name: "Syntax Error Hoodie",
+    category: "cyber",
+    tag: "OS.HOOD",
+    price: "$42.000 ARS",
+    size: "M / L / XL",
+    specs: {
+      en: { fit: "Oversized", fabric: "340gsm fleece", note: "// heavyweight fleece, custom compiler traceback print on chest. quiet from a distance, error up close." },
+      es: { fit: "Oversize", fabric: "frisa pesada 340gsm", note: "// frisa pesada, estampa con reporte de error del compilador en el pecho. discreta de lejos, error de cerca." }
+    },
+    vectorType: "hoodie",
+    textPrint: "ERROR: SYNTAX_ERR"
+  },
+  {
+    id: "ART.03",
+    name: "Kernel Panic Tee",
+    category: "meme",
+    tag: "REG.TEE",
+    price: "$22.000 ARS",
+    size: "S / M / L / XL",
+    specs: {
+      en: { fit: "Regular Boxy", fabric: "200gsm cotton", note: "// front blue screen print. standard boxy fit, double stitched. a critical system breakdown as streetwear." },
+      es: { fit: "Regular Boxy", fabric: "algodón 200gsm", note: "// estampa delantera estilo pantalla azul. calce boxy clásico, doble costura. caída crítica del sistema hecha streetwear." }
+    },
+    vectorType: "tee",
+    textPrint: "KERNEL PANIC"
+  },
+  {
+    id: "ART.04",
+    name: "Dystopian Cargo Pants",
+    category: "streetwear",
+    tag: "TACT.CARGO",
+    price: "$48.000 ARS",
+    size: "38 / 40 / 42 / 44 / 46",
+    specs: {
+      en: { fit: "Relaxed Cargo", fabric: "Ripstop cotton", note: "// tactical modular pocket system, adjustable drawstring cuffs. engineered for high mobility and tech utility." },
+      es: { fit: "Relaxed Cargo", fabric: "Algodón Ripstop", note: "// sistema de bolsillos modulares tácticos, puños con cordón ajustable. diseñado para alta movilidad y utilidad técnica." }
+    },
+    vectorType: "pants",
+    textPrint: "SYS.INIT"
+  },
+  {
+    id: "ART.05",
+    name: "Null Pointer Dad Cap",
+    category: "meme",
+    tag: "STR.CAP",
+    price: "$14.000 ARS",
+    size: "Adjustable",
+    specs: {
+      en: { fit: "Classic Dad Cap", fabric: "100% cotton drill", note: "// embroidered NullPointerException signature. buckle closure. points to nothing, fits everything." },
+      es: { fit: "Dad Cap Clásica", fabric: "gabardina 100% algodón", note: "// firma NullPointerException bordada. hebilla de ajuste. apunta a la nada, combina con todo." }
+    },
+    vectorType: "cap",
+    textPrint: "NULL"
+  },
+  {
+    id: "ART.06",
+    name: "Reflective Signal Windbreaker",
+    category: "cyber",
+    tag: "TECH.JACKET",
+    price: "$55.000 ARS",
+    size: "S / M / L",
+    specs: {
+      en: { fit: "Standard Tech", fabric: "Waterproof ripstop", note: "// silver reflective graphics, high collar with storm hood, waterproof zippers. shines under direct signal beam." },
+      es: { fit: "Tech Estándar", fabric: "Ripstop impermeable", note: "// estampas reflectivas plateadas, cuello alto con capucha de tormenta, cierres impermeables. brilla bajo haz de luz directo." }
+    },
+    vectorType: "jacket",
+    textPrint: "SIGNAL_GLOW"
+  }
+];
+
+// Vector SVG Drawers
+function getVectorSVG(type, text) {
+  if (type === "hoodie") {
+    return `
+      <svg class="garment-photo-vector" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 32,28 L 38,13 L 50,21 L 62,13 L 68,28 L 86,38 L 76,49 L 71,44 L 71,112 L 29,112 L 29,44 L 24,49 L 14,38 Z" fill="none" stroke="currentColor" stroke-width="1.2" />
+        <path d="M 38,13 C 38,2 62,2 62,13 Z" fill="none" stroke="currentColor" stroke-width="1" />
+        <path d="M 38,85 L 62,85 L 58,105 L 42,105 Z" fill="none" stroke="currentColor" stroke-width="1" />
+        <text x="50" y="65" font-family="'JetBrains Mono', monospace" font-size="4.5" fill="var(--signal)" text-anchor="middle">${text}</text>
+      </svg>`;
+  }
+  if (type === "tee") {
+    return `
+      <svg class="garment-photo-vector" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 30,12 L 40,3 L 50,9 L 60,3 L 70,12 L 85,28 L 75,38 L 70,33 L 70,112 L 30,112 L 30,33 L 25,38 L 15,28 Z" fill="none" stroke="currentColor" stroke-width="1.2" />
+        <path d="M 40,3 C 45,8 55,8 60,3" fill="none" stroke="currentColor" stroke-width="1" />
+        <line x1="30" y1="33" x2="70" y2="33" stroke="var(--signal)" stroke-width="0.6" stroke-dasharray="2 2" opacity="0.5" />
+        <text x="50" y="65" font-family="'JetBrains Mono', monospace" font-size="4.5" fill="var(--fg-dim)" text-anchor="middle">${text}</text>
+      </svg>`;
+  }
+  if (type === "cap") {
+    return `
+      <svg class="garment-photo-vector" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 22,68 C 22,25 78,25 78,68 Z" fill="none" stroke="currentColor" stroke-width="1.2" />
+        <path d="M 17,68 C 17,58 5,71 18,77 C 38,85 62,85 82,77 C 95,71 83,58 83,68" fill="none" stroke="currentColor" stroke-width="1.2" />
+        <text x="50" y="52" font-family="'JetBrains Mono', monospace" font-size="4.5" fill="var(--signal)" text-anchor="middle">${text}</text>
+      </svg>`;
+  }
+  if (type === "pants") {
+    return `
+      <svg class="garment-photo-vector" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 32,10 L 68,10 L 73,115 L 53,115 L 50,55 L 47,115 L 27,115 Z" fill="none" stroke="currentColor" stroke-width="1.2" />
+        <line x1="32" y1="22" x2="68" y2="22" stroke="currentColor" stroke-width="0.8" />
+        <rect x="23" y="45" width="8" height="15" fill="none" stroke="currentColor" stroke-width="1" rx="1" />
+        <rect x="69" y="45" width="8" height="15" fill="none" stroke="currentColor" stroke-width="1" rx="1" />
+        <text x="50" y="18" font-family="'JetBrains Mono', monospace" font-size="3" fill="var(--fg-faint)" text-anchor="middle">${text}</text>
+      </svg>`;
+  }
+  if (type === "jacket") {
+    return `
+      <svg class="garment-photo-vector" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 30,22 L 40,10 L 50,16 L 60,10 L 70,22 L 86,35 L 76,46 L 71,40 L 71,112 L 29,112 L 29,40 L 24,46 L 14,35 Z" fill="none" stroke="currentColor" stroke-width="1.2" />
+        <line x1="50" y1="16" x2="50" y2="112" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2" />
+        <text x="50" y="60" font-family="'JetBrains Mono', monospace" font-size="4.5" fill="var(--ok)" text-anchor="middle">${text}</text>
+      </svg>`;
+  }
+  return "";
+}
+
+// Build grid items
+const grid = document.getElementById('catalogGrid');
+function renderCatalog(filter = "all") {
+  grid.innerHTML = "";
+  
+  // Update section title command
+  const titleCmd = document.getElementById('catalogHeroTitle');
+  titleCmd.innerHTML = `&gt; SELECT_ARTIFACT --${filter.toUpperCase()}`;
+
+  products.forEach(p => {
+    if (filter !== "all" && p.category !== filter) return;
+
+    const card = document.createElement('article');
+    card.className = "product-card";
+    card.setAttribute('data-id', p.id);
+
+    // Front content
+    let frontContent = "";
+    if (p.images) {
+      frontContent = `<img class="garment-photo" src="${p.images.front}" alt="${p.name} - front">`;
+    } else {
+      frontContent = getVectorSVG(p.vectorType, p.textPrint);
+    }
+
+    // Back content
+    let backContent = "";
+    if (p.images) {
+      backContent = `<img class="garment-photo" src="${p.images.back}" alt="${p.name} - back">`;
+    } else {
+      // Rotate same vector but maybe mirroring or alternate print
+      backContent = getVectorSVG(p.vectorType, "BACK // " + p.id);
+    }
+
+    card.innerHTML = `
+      <div class="product-stage" onclick="openDetails('${p.id}')">
+        <span class="hud-id">${p.id} / ${p.tag}</span>
+        <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
+        <div class="hud-corner bl"></div><div class="hud-corner br"></div>
+        <div class="scanline"></div>
+        <div class="product-tilt">
+          <div class="product-spin">
+            <div class="garment-face front">
+              ${frontContent}
+            </div>
+            <div class="garment-face back">
+              ${backContent}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="product-info">
+        <div class="product-meta-header">
+          <h3 class="product-name">${p.name}</h3>
+          <span class="product-price">${p.price}</span>
+        </div>
+        <div class="product-console-line">&gt; tag: <span class="tag">--${p.category}</span> // t: <span class="val">${p.size}</span></div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+    
+    // Add hover sound or class logic for cursor
+    const stage = card.querySelector('.product-stage');
+    stage.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
+    stage.addEventListener('mouseleave', () => document.body.classList.remove('hover-active'));
+  });
+}
+
+// Initial render
+renderCatalog();
+
+// Filter buttons click handler
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const filter = btn.dataset.filter;
+    // Animate out, filter, then animate in
+    gsap.to(grid.children, {
+      opacity: 0,
+      y: 15,
+      duration: 0.3,
+      stagger: 0.04,
+      onComplete: () => {
+        renderCatalog(filter);
+        gsap.fromTo(grid.children, 
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.4, stagger: 0.04 }
+        );
+      }
+    });
+  });
+  
+  btn.addEventListener('mouseenter', () => document.body.classList.add('hover-active'));
+  btn.addEventListener('mouseleave', () => document.body.classList.remove('hover-active'));
+});
+
+// Cursor movements
+const cursor = document.querySelector('.cursor');
+const ring = document.querySelector('.cursor-ring');
+let mx = window.innerWidth/2, my = window.innerHeight/2;
+let rx = mx, ry = my;
+window.addEventListener('mousemove', e=>{
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx+'px';
+  cursor.style.top = my+'px';
+});
+(function ringLoop(){
+  rx += (mx-rx)*0.18; ry += (my-ry)*0.18;
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+  requestAnimationFrame(ringLoop);
+})();
+document.querySelectorAll('a, button').forEach(el=>{
+  el.addEventListener('mouseenter', ()=>document.body.classList.add('hover-active'));
+  el.addEventListener('mouseleave', ()=>document.body.classList.remove('hover-active'));
+});
+
+// Twinkling particles background script
+const canvas = document.getElementById('fx');
+const ctx = canvas.getContext('2d');
+let w, h, particles = [];
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight * 1.5;
+}
+function initParticles(){
+  particles = [];
+  const count = Math.min(80, Math.floor(window.innerWidth / 16));
+  for(let i=0;i<count;i++){
+    const maxA = Math.random()*0.4 + 0.15;
+    particles.push({
+      x: Math.random()*w,
+      y: Math.random()*h,
+      r: Math.random()*1.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: (Math.random() - 0.5) * 0.2,
+      a: Math.random()*maxA + 0.1,
+      maxA: maxA,
+      twinkleSpeed: Math.random()*0.003 + 0.001,
+      twinkleDir: Math.random() > 0.5 ? 1 : -1,
+      accent: Math.random() < 0.15
+    });
+  }
+}
+function draw(){
+  ctx.clearRect(0,0,w,h);
+  
+  particles.forEach(p=>{
+    p.x += p.vx; p.y += p.vy;
+    if(p.x < 0) p.x = w; else if(p.x > w) p.x = 0;
+    if(p.y < 0) p.y = h; else if(p.y > h) p.y = 0;
+    
+    p.a += p.twinkleSpeed * p.twinkleDir;
+    if(p.a > p.maxA) { p.a = p.maxA; p.twinkleDir = -1; }
+    else if(p.a < 0.08) { p.a = 0.08; p.twinkleDir = 1; }
+    
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.accent ? `rgba(111,108,240,${p.a})` : `rgba(237,237,240,${p.a})`;
+    ctx.fill();
+  });
+  
+  ctx.lineWidth = 0.6;
+  for(let i=0; i<particles.length; i++){
+    const p1 = particles[i];
+    for(let j=i+1; j<particles.length; j++){
+      const p2 = particles[j];
+      const dx = p1.x - p2.x;
+      const dy = p1.y - p2.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      if(dist < 90){
+        const alpha = (1 - dist/90) * 0.09 * Math.min(p1.a, p2.a);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = p1.accent && p2.accent 
+          ? `rgba(111,108,240,${alpha * 1.5})` 
+          : `rgba(237,237,240,${alpha})`;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(draw);
+}
+resize(); initParticles(); draw();
+window.addEventListener('resize', ()=>{ resize(); initParticles(); });
+
+// Modal open/close logic
+const modal = document.getElementById('productModal');
+const modalClose = document.getElementById('modalClose');
+
+function openDetails(id) {
+  const p = products.find(prod => prod.id === id);
+  if (!p) return;
+
+  const content = document.getElementById('modalGridContent');
+  
+  // Set preview container
+  let preview = "";
+  if (p.images) {
+    preview = `<img class="garment-photo" src="${p.images.front}" alt="${p.name}">`;
+  } else {
+    preview = getVectorSVG(p.vectorType, p.textPrint);
+  }
+
+  const lang = currentLang;
+  const fitLabel = lang === 'en' ? 'Fit' : 'Corte';
+  const fabricLabel = lang === 'en' ? 'Fabric' : 'Material';
+  const tagLabel = lang === 'en' ? 'Asset ID' : 'ID Archivo';
+  const buyText = lang === 'en' ? 'order via whatsapp' : 'ordenar por whatsapp';
+
+  // Prefecture messages for WhatsApp order link
+  const wMessage = encodeURIComponent(
+    lang === 'en' 
+      ? `Hello NULL! I would like to order: ${p.name} (${p.id}) in Size: [Size Here].`
+      : `¡Hola NULL! Me gustaría encargar: ${p.name} (${p.id}) en Talle: [Talle Aquí].`
+  );
+
+  content.innerHTML = `
+    <div class="modal-preview">
+      ${preview}
+    </div>
+    <div class="modal-details">
+      <h3>${p.name}</h3>
+      <dl>
+        <div><dt>${tagLabel}</dt><dd>${p.id} // ${p.tag}</dd></div>
+        <div><dt>Price</dt><dd class="ok">${p.price}</dd></div>
+        <div><dt>Sizes</dt><dd>${p.size}</dd></div>
+        <div><dt>${fitLabel}</dt><dd>${p.specs[lang].fit}</dd></div>
+        <div><dt>${fabricLabel}</dt><dd>${p.specs[lang].fabric}</dd></div>
+      </dl>
+      <p class="modal-note">${p.specs[lang].note}</p>
+      <a class="buy-btn" href="https://wa.me/5491112345678?text=${wMessage}" target="_blank" rel="noopener">${buyText}</a>
+    </div>
+  `;
+
+  modal.classList.add('show');
+}
+
+modalClose.addEventListener('click', () => {
+  modal.classList.remove('show');
+});
+
+modal.addEventListener('click', e => {
+  if (e.target === modal) modal.classList.remove('show');
+});
+
+// Translation handling
+const i18n = {
+  navHome: { en: 'HOME', es: 'INICIO' },
+  catalogSub: {
+    en: '// indexing available clothing. status: 200 ok',
+    es: '// indexando catálogo disponible. estado: 200 ok'
+  },
+  copyright: { en: '© 2026 NULL. — All signals reserved.', es: '© 2026 NULL. — Todas las señales reservadas.' },
+  terminalStatus: { en: 'drop_001 :: live', es: 'drop_001 :: activo' },
+  status: { en: 'SYSTEM://ONLINE', es: 'SISTEMA://ONLINE' }
+};
+
+let currentLang = 'en';
+const langSwitch = document.getElementById('langSwitch');
+
+function applyLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const entry = i18n[el.dataset.i18n];
+    if(entry) el.innerHTML = entry[lang];
+  });
+
+  langSwitch.querySelectorAll('[data-lang-opt]').forEach(opt=>{
+    opt.classList.toggle('active', opt.dataset.langOpt === lang);
+  });
+  
+  // Re-render catalog to capture tags/price language updates
+  const activeFilterBtn = document.querySelector('.filter-btn.active');
+  const currentFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : 'all';
+  renderCatalog(currentFilter);
+}
+
+langSwitch.addEventListener('click', ()=>{
+  applyLang(currentLang === 'en' ? 'es' : 'en');
+});
+
+</script>
+</body>
+</html>
