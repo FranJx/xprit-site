@@ -26,6 +26,9 @@
  *    CS                      ->   GPIO 17 (TX2) [¡NUNCA GPIO 5!]
  *    BLK / LED               ->   3.3V (o GPIO 22)
  *
+ *    BOTÓN A 3.3V (Recomendado):  Pata 1 -> 3.3V, Pata 2 -> GPIO 27 (D27)
+ *    BOTÓN A GND (Alternativo):   Pata 1 -> GND,  Pata 2 -> GPIO 0 (o botón BOOT integrado)
+ *
  *    NOTA: Si tu pantalla tiene 7 pines y NO tiene pin CS, no conectes nada a GPIO 17.
  *
  *    ¡POR QUÉ GPIO 5 FALLABA!:
@@ -68,7 +71,7 @@ const char* WIFI_PASS = ""; // Tu clave de Wi-Fi
 //        Despierta al presionar el BOTÓN o periódicamente por temporizador.
 // false: Mantiene el ESP32 despierto continuamente (ideal para pruebas con cable USB).
 #define ENABLE_DEEP_SLEEP          true
-#define DISPLAY_ON_SECONDS         20  // Segundos que el mensaje se queda en pantalla antes de dormir
+#define DISPLAY_ON_SECONDS         30  // Segundos que el mensaje se queda en pantalla antes de dormir
 #define SLEEP_DURATION_MINUTES     5   // Minutos que duerme antes de volver a consultar
 #define POLL_INTERVAL_SECONDS      15  // Si ENABLE_DEEP_SLEEP es false, intervalo en segundos
 
@@ -85,7 +88,27 @@ char serverHost[128]   = "https://xprit-robotics.com";
 int lastMessageId      = 0;
 
 // =====================================================================================
-// 4. CONFIGURACIÓN AUTOMÁTICA DE PINES
+// 4. CONFIGURACIÓN DEL BOTÓN DE INTERACCIÓN (3.3V vs GND)
+// =====================================================================================
+// ¿A qué vas a conectar el botón?
+// true:  Botón a 3.3V (Pata 1 a 3.3V, Pata 2 al GPIO). Al presionar entrega HIGH (3.3V).
+//        Usa GPIO 27 en DevKit o GPIO 5 en C3 (¡NUNCA GPIO 0 porque ya está en 3.3V en la placa!).
+// false: Botón a GND  (Pata 1 a GND, Pata 2 al GPIO). Al presionar entrega LOW (0V).
+//        Puedes usar el botón BOOT integrado en la placa (GPIO 0 / 9) sin cables extra.
+#define BUTTON_TO_3V3          true
+
+#if BUTTON_TO_3V3
+  #define BUTTON_ACTIVE_STATE  HIGH
+  #define BUTTON_PIN_MODE      INPUT_PULLDOWN
+  #define BUTTON_WAKE_LEVEL    1
+#else
+  #define BUTTON_ACTIVE_STATE  LOW
+  #define BUTTON_PIN_MODE      INPUT_PULLUP
+  #define BUTTON_WAKE_LEVEL    0
+#endif
+
+// =====================================================================================
+// 5. CONFIGURACIÓN AUTOMÁTICA DE PINES
 // =====================================================================================
 #if defined(CONFIG_IDF_TARGET_ESP32C3)
   // Configuración para ESP32-C3 SuperMini (RISC-V)
@@ -96,7 +119,11 @@ int lastMessageId      = 0;
   #define TFT_MOSI    6
   #define TFT_SCLK    4
   #define TFT_BLK     2
-  #define BUTTON_PIN  9 // Botón BOOT en el C3 SuperMini
+  #if BUTTON_TO_3V3
+    #define BUTTON_PIN  5 // GPIO 5 libre para botón a 3.3V
+  #else
+    #define BUTTON_PIN  9 // Botón BOOT integrado a GND
+  #endif
 #else
   // Configuración para ESP32 DevKit V1 / WROOM-32 clásico (30 o 38 pines)
   // PINES 100% LIBRES DE STRAPPING (GPIO 17 y 16 no interfieren con el arranque)
@@ -107,7 +134,11 @@ int lastMessageId      = 0;
   #define TFT_MOSI    23  // Hardware VSPI MOSI (SDA)
   #define TFT_SCLK    18  // Hardware VSPI SCLK (SCL)
   #define TFT_BLK     22  // GPIO 22 (o conectar directo a 3.3V)
-  #define BUTTON_PIN  0   // Botón BOOT integrado en la placa (GPIO 0)
+  #if BUTTON_TO_3V3
+    #define BUTTON_PIN  27 // D27 (RTC GPIO con pull-down para botón a 3.3V)
+  #else
+    #define BUTTON_PIN  0  // Botón BOOT integrado a GND (GPIO 0)
+  #endif
 #endif
 
 // Objeto de pantalla y almacenamiento
@@ -177,7 +208,7 @@ void setup() {
     Serial.printf(" [XpriT Robotics] ESP-KC Iniciando en %s\n", BOARD_NAME);
     Serial.println("========================================================");
 
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_PIN, BUTTON_PIN_MODE);
     delay(100); // Estabilizar lectura del pin
 
     setupDisplay();
@@ -205,9 +236,9 @@ void setup() {
 
     // Solo forzar portal si se arranca en frío manteniendo pulsado el botón (evita falsos positivos al despertar)
     bool forcePortal = false;
-    if (digitalRead(BUTTON_PIN) == LOW && !wokeFromSleep) {
+    if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE && !wokeFromSleep) {
         delay(600);
-        if (digitalRead(BUTTON_PIN) == LOW) {
+        if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE) {
             forcePortal = true;
             Serial.println("[Boton] Boton presionado al encender -> Forzando Portal Cautivo.");
         }
@@ -318,7 +349,7 @@ void setup() {
     delay(1500);
 
     // Si el botón está pulsado, enviar mensaje rápido
-    if (digitalRead(BUTTON_PIN) == LOW) {
+    if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE) {
         sendQuickReply();
     }
 
@@ -339,7 +370,7 @@ void loop() {
     // En modo Deep Sleep no se ejecuta el loop
 #else
     // Modo desarrollo por USB: bucle continuo sin apagar el ESP32
-    if (digitalRead(BUTTON_PIN) == LOW) {
+    if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE) {
         delay(200); // Debounce
         Serial.println("\n[Boton] Pulsado -> Enviando respuesta rapida...");
         sendQuickReply();
@@ -783,9 +814,16 @@ void enterDeepSleep(int sleepSeconds) {
     esp_sleep_enable_timer_wakeup((uint64_t)sleepSeconds * 1000000ULL);
 
 #if defined(CONFIG_IDF_TARGET_ESP32C3)
-    esp_deep_sleep_enable_gpio_wakeup(1ULL << BUTTON_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
+    esp_deep_sleep_enable_gpio_wakeup(1ULL << BUTTON_PIN, BUTTON_TO_3V3 ? ESP_GPIO_WAKEUP_GPIO_HIGH : ESP_GPIO_WAKEUP_GPIO_LOW);
 #else
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN, 0);
+    #if BUTTON_TO_3V3
+        gpio_pulldown_en((gpio_num_t)BUTTON_PIN);
+        gpio_pullup_dis((gpio_num_t)BUTTON_PIN);
+    #else
+        gpio_pullup_en((gpio_num_t)BUTTON_PIN);
+        gpio_pulldown_dis((gpio_num_t)BUTTON_PIN);
+    #endif
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN, BUTTON_WAKE_LEVEL);
 #endif
 
     esp_deep_sleep_start();
