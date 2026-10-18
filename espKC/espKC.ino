@@ -14,22 +14,25 @@
  *    4. "WiFiManager" (por tzapu, tablatronix)
  * 
  *  =====================================================================================
- *  TABLA DE CONEXIÓN SEGURA — ESP32 DevKit (WROOM-32 clásico):
+ *  TABLA DE CONEXIÓN ESTÁNDAR — ESP32 DevKit (WROOM-32 clásico):
  *  -------------------------------------------------------------------------------------
- *    Pantalla ST7735S       ESP32 DevKit (WROOM)
- *    GND                ->  GND
- *    VCC                ->  3.3V (o 5V si tu pantalla tiene regulador 662K)
- *    SCL / SCK          ->  GPIO 18 (Hardware VSPI SCK)
- *    SDA / MOSI         ->  GPIO 23 (Hardware VSPI MOSI)
- *    RES / RST          ->  GPIO 4
- *    DC                 ->  GPIO 21 (Data / Command)
- *    CS                 ->  GPIO 5  (Chip Select)
- *    BLK / LED          ->  GPIO 22 (o directo a 3.3V)
+ *    Pantalla ST7735S (80x160)    ESP32 DevKit (WROOM)
+ *    GND                     ->   GND
+ *    VCC                     ->   3.3V
+ *    SCL / SCK               ->   GPIO 18 (VSPI SCK)
+ *    SDA / MOSI              ->   GPIO 23 (VSPI MOSI)
+ *    RES / RST               ->   GPIO 4
+ *    DC                      ->   GPIO 16 (RX2)
+ *    CS                      ->   GPIO 17 (TX2) [¡NUNCA GPIO 5!]
+ *    BLK / LED               ->   3.3V (o GPIO 22)
  *
- *    ¡IMPORTANTE!: NUNCA conectes la pantalla a los pines marcados como
- *    CLK, SD0, SD1, SD2, SD3 o CMD (GPIO 6 a 11). Esos pines son de la
- *    memoria Flash interna y provocan el error "invalid header: 0xffffffff".
- *    Tampoco uses GPIO 12 ni GPIO 2 para señales de la pantalla.
+ *    NOTA: Si tu pantalla tiene 7 pines y NO tiene pin CS, no conectes nada a GPIO 17.
+ *
+ *    ¡POR QUÉ GPIO 5 FALLABA!:
+ *    GPIO 5 es un "strapping pin" de arranque. Cuando una pantalla tira de GPIO 5
+ *    hacia nivel bajo al encender, el ESP32 interpreta que debe bootear en modo SDIO,
+ *    falla al leer la memoria Flash y lanza "invalid header: 0xffffffff".
+ *    Al mover CS a GPIO 17 y DC a GPIO 16, queda 100% libre de interferencias.
  *  -------------------------------------------------------------------------------------
  *  TABLA DE CONEXIÓN — ESP32-C3 SuperMini (RISC-V):
  *  -------------------------------------------------------------------------------------
@@ -89,14 +92,14 @@ int lastMessageId      = 0;
   #define BUTTON_PIN  9 // Botón BOOT en el C3 SuperMini
 #else
   // Configuración para ESP32 DevKit V1 / WROOM-32 clásico (30 o 38 pines)
-  // PINES 100% SEGUROS: libres de strapping pins y libres del bus SPI Flash
+  // PINES 100% LIBRES DE STRAPPING (GPIO 17 y 16 no interfieren con el arranque)
   #define BOARD_NAME  "ESP32 DevKit WROOM"
-  #define TFT_CS      5   // Hardware VSPI CS
-  #define TFT_DC      21  // GPIO 21 (Libre de strapping)
+  #define TFT_CS      17  // TX2 (GPIO 17 - Libre de strapping)
+  #define TFT_DC      16  // RX2 (GPIO 16 - Libre de strapping)
   #define TFT_RST     4   // GPIO 4
   #define TFT_MOSI    23  // Hardware VSPI MOSI (SDA)
   #define TFT_SCLK    18  // Hardware VSPI SCLK (SCL)
-  #define TFT_BLK     22  // GPIO 22 (Libre de strapping) o conectar directo a 3.3V
+  #define TFT_BLK     22  // GPIO 22 (o conectar directo a 3.3V)
   #define BUTTON_PIN  0   // Botón BOOT integrado en la placa (GPIO 0)
 #endif
 
