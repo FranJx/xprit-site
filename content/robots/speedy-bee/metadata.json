@@ -1,0 +1,21 @@
+{
+  "slug": "speedy-bee",
+  "name": "Speedy Bee",
+  "category": "Seguidor de Línea",
+  "year": 2024,
+  "description": "Robot seguidor de línea de competición internacional. Optimizado para trazado de curvas cerradas y máxima aceleración. Representó a XpriT Robotics y Argentina en RoboChallenge 2024 (Rumania), ubicándose en el Top 30 mundial.",
+  "mainImage": "/images/velocista-closed.webp",
+  "features": [
+    "Barra frontal multisensores infrarrojos calibrados",
+    "Control de trayectoria por algoritmo PID predictivo",
+    "Chasis ultraliviano con centro de masa rebajado",
+    "Tracción de alto agarre con compuestos especiales"
+  ],
+  "specs": [
+    { "label": "Categoría", "value": "Seguidor de Línea / Velocista" },
+    { "label": "Torneo Internacional", "value": "RoboChallenge 2024, Bucarest (Rumania)" },
+    { "label": "Resultado", "value": "Top 30 Internacional" },
+    { "label": "Control", "value": "PID de alta frecuencia" },
+    { "label": "Estado", "value": "Robot de trayectoria internacional" }
+  ]
+}

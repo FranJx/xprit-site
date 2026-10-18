@@ -13,6 +13,7 @@
   "dependencies": {
     "@google/model-viewer": "latest",
     "@prisma/client": "^5.22.0",
+    "@types/three": "^0.186.0",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -28,7 +29,8 @@
     "react-dom": "latest",
     "react-markdown": "^10.1.0",
     "remark": "^15.0.1",
-    "remark-html": "^16.0.1"
+    "remark-html": "^16.0.1",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",

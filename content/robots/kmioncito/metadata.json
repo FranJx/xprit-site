@@ -1,0 +1,28 @@
+{
+  "slug": "kmioncito",
+  "name": "Kmioncito",
+  "category": "WRO Future Engineers",
+  "year": 2025,
+  "description": "Vehículo autónomo campeón nacional WRO Argentina 2025 y representante en WRO Internacional Singapur. Equipado con dirección Ackermann, visión artificial HuskyLens, IMU BNO055 y chasis 3D propio.",
+  "mainImage": "/images/laberinto-open.webp",
+  "features": [
+    "Cámara inteligente HuskyLens para reconocimiento de marcas y obstáculos",
+    "Dirección Ackermann con servomotor metálico MG90S",
+    "IMU BNO055 de 9 ejes para control de orientación",
+    "Doble motor N20 con encoders de cuadratura",
+    "Controlador TB6612FNG y microcontrolador Arduino Nano",
+    "Chasis monocasco y soportes diseñados e impresos en 3D"
+  ],
+  "specs": [
+    { "label": "Categoría", "value": "WRO Future Engineers" },
+    { "label": "Microcontrolador", "value": "Arduino Nano" },
+    { "label": "Driver de Motores", "value": "TB6612FNG dual" },
+    { "label": "Tracción", "value": "2x Motores N20 DC con encoders" },
+    { "label": "Dirección", "value": "Ackermann con servo MG90S" },
+    { "label": "Cámara / Visión", "value": "DFRobot HuskyLens AI Camera" },
+    { "label": "Sensores", "value": "HC-SR04 Ultrasonido + IMU BNO055" },
+    { "label": "Batería", "value": "LiPo 3S (11.1V)" },
+    { "label": "Chasis", "value": "Diseño 3D propio en PLA/Resina" },
+    { "label": "Estado", "value": "Campeón WRO 2025 / Documentado en GitHub" }
+  ]
+}

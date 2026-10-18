@@ -1,0 +1,20 @@
+{
+  "slug": "maromero",
+  "name": "Maromero",
+  "category": "Minisumo Autonomo Pro",
+  "year": 2025,
+  "description": "Robot de combate de la categoría Minisumo con innovadoras estrategias de ataque, evasión perimetral y sistema mecánico de banderas. Mantiene un registro competitivo invicto en torneos.",
+  "mainImage": "/images/minisumo-open.webp",
+  "features": [
+    "Sistema mecánico de banderas para distracción y desestabilización",
+    "Algoritmo de evasión de bordes de dohyo ultrarrápido",
+    "Pala de acero templado con ángulo afilado",
+    "Estructura modular compacta"
+  ],
+  "specs": [
+    { "label": "Categoría", "value": "Minisumo Autónomo (500g)" },
+    { "label": "Récord", "value": "Historial invicto en competencia" },
+    { "label": "Mecánica", "value": "Mecanismo de banderas desplegables" },
+    { "label": "Estado", "value": "Robot activo / desarrollo" }
+  ]
+}

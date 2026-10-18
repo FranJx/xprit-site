@@ -10,6 +10,7 @@ yarn-error.log
 
 # Uploads temporales (no commitar imágenes)
 public/content/robots/submissions/
+data/espkc-images/
 
 # Build
 dist/

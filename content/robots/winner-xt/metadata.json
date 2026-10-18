@@ -1,0 +1,22 @@
+{
+  "slug": "winner-xt",
+  "name": "Winner XT",
+  "category": "Minisumo Pro Autónomo",
+  "year": 2026,
+  "description": "Robot de combate autónomo de última generación desarrollado para alto rendimiento en combates de Minisumo Pro. Podios consecutivos y victorias en la Copa Robótica Misiones 2026.",
+  "mainImage": "/images/minisumo-closed.webp",
+  "features": [
+    "Algoritmo predictivo de búsqueda y barrido de dohyo",
+    "Pala metálica de ataque optimizada para cuña baja",
+    "Sensores ópticos de línea de alta frecuencia",
+    "Motores Pololu Micro Metal de alto torque",
+    "Placa de control de respuesta instantánea"
+  ],
+  "specs": [
+    { "label": "Categoría", "value": "Minisumo Pro Autónomo (10x10cm)" },
+    { "label": "Peso", "value": "500 gramos (reglamentario)" },
+    { "label": "Estado", "value": "Activo en competición oficial" },
+    { "label": "Logros 2026", "value": "Podios y victorias en Copa Robótica Misiones" },
+    { "label": "Chasis", "value": "Estructura híbrida aluminio y fibra" }
+  ]
+}
