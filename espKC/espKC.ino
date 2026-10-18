@@ -3,9 +3,9 @@
  *  XpriT Robotics — ESP-KC (Llavero IoT con Mensajería P2P)
  * =====================================================================================
  *  Hardware: 
- *    - Microcontrolador: ESP32-C3 SuperMini (RISC-V)
+ *    - Microcontrolador: ESP32-C3 SuperMini (RISC-V) o ESP32 DevKit clásico (WROOM-32)
  *    - Pantalla: TFT ST7735S 80x160 IPS (RGB)
- *    - Botón de interacción: GPIO 9 (Botón BOOT integrado en la placa)
+ *    - Botón de interacción: GPIO 9 (C3 SuperMini) o GPIO 0 (ESP32 clásico)
  * 
  *  Librerías requeridas en Arduino IDE (Instalar desde el Administrador de Bibliotecas):
  *    1. "Adafruit GFX Library" (por Adafruit)
@@ -13,16 +13,9 @@
  *    3. "ArduinoJson" (por Benoit Blanchon, versión 6.x o 7.x)
  *    4. "WiFiManager" (por tzapu, tablatronix)
  * 
- *  Configuración de Pines ESP32-C3 SuperMini ↔ ST7735S 80x160:
- *    GND      -> GND
- *    VCC      -> 3.3V
- *    SCL/SCK  -> GPIO 4 (SPI Clock)
- *    SDA/MOSI -> GPIO 6 (SPI Data)
- *    RES/RST  -> GPIO 1 (Reset)
- *    DC       -> GPIO 3 (Data / Command)
- *    CS       -> GPIO 7 (Chip Select)
- *    BLK/LED  -> GPIO 2 (Control de Retroiluminación / Ahorro de batería)
- *    BOTÓN    -> GPIO 9 (Botón BOOT con pull-up interno)
+ *  Pines ST7735S (80x160 IPS) recomendados:
+ *    ESP32-C3 SuperMini: SCL=4, SDA=6, RES=1, DC=3, CS=7, BLK=2, BOTON=9
+ *    ESP32 DevKit WROOM: SCL=18, SDA=23, RES=4, DC=2, CS=5, BLK=15, BOTON=0
  * =====================================================================================
  */
 
@@ -36,11 +29,36 @@
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
 
-// -------------------------------------------------------------------------------------
-// CONFIGURACIÓN AUTOMÁTICA DE PINES (Detecta si es ESP32-C3 o ESP32 DevKit clásico)
-// -------------------------------------------------------------------------------------
+// =====================================================================================
+// 1. CONFIGURACIÓN RÁPIDA DE WI-FI (OPCIONAL PERO RECOMENDADO PARA PRUEBAS)
+// =====================================================================================
+// Si completas tu red y clave aquí, el ESP32 se conectará DIRECTO sin esperar el celular.
+// Si los dejas vacíos (""), usará el Portal Cautivo Wi-Fi ("XpriT-Llavero-Setup").
+// NOTA: Los ESP32 solo admiten redes Wi-Fi de 2.4 GHz (no 5 GHz).
+const char* WIFI_SSID = ""; // Tu red Wi-Fi (ej: "MiCasa_2.4G")
+const char* WIFI_PASS = ""; // Tu clave de Wi-Fi
+
+// =====================================================================================
+// 2. MODO DESARROLLO / AHORRO DE BATERÍA
+// =====================================================================================
+// false: Mantiene el ESP32 despierto y consulta periódicamente (ideal con cable USB conectado).
+// true:  Entra en Deep Sleep tras cada consulta para maximizar batería (ideal para llavero).
+#define ENABLE_DEEP_SLEEP      false
+#define POLL_INTERVAL_SECONDS  15 // Cada cuántos segundos consulta en modo despierto
+
+// =====================================================================================
+// 3. IDENTIFICADORES Y SERVIDOR
+// =====================================================================================
+char myDeviceId[32]    = "Guada";
+char partnerId[32]     = "Fran";
+// URL de tu servidor Next.js (puede ser tu IP local "http://192.168.1.X:3000" o dominio de Railway/Vercel)
+char serverHost[128]   = "https://xprit-site.vercel.app";
+int lastMessageId      = 0;
+
+// =====================================================================================
+// 4. CONFIGURACIÓN AUTOMÁTICA DE PINES
+// =====================================================================================
 #if defined(CONFIG_IDF_TARGET_ESP32C3)
-  // Configuración para ESP32-C3 SuperMini (RISC-V)
   #define BOARD_NAME  "ESP32-C3 SuperMini"
   #define TFT_CS      7
   #define TFT_DC      3
@@ -50,7 +68,6 @@
   #define TFT_BLK     2
   #define BUTTON_PIN  9 // Botón BOOT en el C3 SuperMini
 #else
-  // Configuración para ESP32 DevKit V1 / WROOM-32 clásico (30 o 38 pines)
   #define BOARD_NAME  "ESP32 DevKit WROOM"
   #define TFT_CS      5
   #define TFT_DC      2
@@ -61,15 +78,9 @@
   #define BUTTON_PIN  0  // Botón BOOT en el ESP32 clásico (GPIO 0)
 #endif
 
-// Objeto de pantalla
+// Objeto de pantalla y almacenamiento
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 Preferences prefs;
-
-// Configuración por defecto (modificable vía portal cautivo)
-char myDeviceId[32]    = "Lore";
-char partnerId[32]     = "Fran";
-char serverHost[128]   = "https://xprit-site.vercel.app"; // o la URL de tu server
-int lastMessageId      = 0;
 
 // Paleta de colores RGB565
 #define COLOR_BG        0x0842 // Negro azulado profundo
@@ -78,157 +89,353 @@ int lastMessageId      = 0;
 #define COLOR_CYAN      0x07FF // Cyan neón
 #define COLOR_TEXT      0xFFFF // Blanco
 #define COLOR_MUTED     0x8410 // Gris suave
+#define COLOR_SUCCESS   0x07E0 // Verde brillante
 
 // Prototipos
 void setupDisplay();
-void showConnectingScreen();
+void showConnectingScreen(const char* targetName);
+void showConnectedScreen();
+void showConfigPortalScreen(const char* apName);
+void showIdleScreen();
+void showErrorScreen(const char* title, const char* detail);
 void showMessageUI(const char* from, const char* content, int id);
 void fetchAndDrawRawImage(int messageId);
 void checkServerMessages();
 void sendQuickReply();
 void enterDeepSleep(int sleepSeconds);
 
+unsigned long lastPollMillis = 0;
+
 void setup() {
     Serial.begin(115200);
-    delay(200);
-    Serial.println("\n[XpriT ESP-KC] Iniciando Llavero IoT...");
+    delay(300);
+    Serial.println("\n========================================================");
+    Serial.printf(" [XpriT Robotics] ESP-KC Iniciando en %s\n", BOARD_NAME);
+    Serial.println("========================================================");
 
     pinMode(BUTTON_PIN, INPUT_PULLUP);
+    delay(100); // Estabilizar lectura del pin
+
     setupDisplay();
 
-    // Iniciar memoria Flash no volátil
+    // Iniciar memoria flash no volátil
     prefs.begin("espkc", false);
     lastMessageId = prefs.getInt("last_id", 0);
     prefs.getString("my_id", myDeviceId, sizeof(myDeviceId));
     prefs.getString("partner_id", partnerId, sizeof(partnerId));
     prefs.getString("server_host", serverHost, sizeof(serverHost));
 
-    Serial.printf("Configuracion cargada -> Mi ID: %s | Pareja: %s | Ultimo Msg: #%d\n", myDeviceId, partnerId, lastMessageId);
+    Serial.printf("[Config] Mi ID: %s | Pareja: %s | Ultimo Msg ID: #%d\n", myDeviceId, partnerId, lastMessageId);
+    Serial.printf("[Config] Servidor: %s\n", serverHost);
 
-    // Si el usuario mantiene pulsado el botón al encender -> forzar portal Wi-Fi
+    // ¿Se mantuvo presionado el botón al arrancar? (Forzar portal)
     bool forcePortal = (digitalRead(BUTTON_PIN) == LOW);
     if (forcePortal) {
-        tft.fillScreen(COLOR_BG);
-        tft.setCursor(6, 20);
-        tft.setTextColor(COLOR_ACCENT);
-        tft.setTextSize(1);
-        tft.println("MODO CONFIGURACION");
-        tft.setTextColor(COLOR_TEXT);
-        tft.println("\nConectate a WiFi:");
-        tft.setTextColor(COLOR_CYAN);
-        tft.println("XpriT-Llavero-Setup");
-    } else {
-        showConnectingScreen();
+        Serial.println("[Boton] Boton presionado al encender -> Forzando Portal Cautivo.");
     }
-
-    // Configuración de WiFiManager (Portal Cautivo)
-    WiFiManager wm;
-    wm.setConfigPortalTimeout(180); // 3 minutos de espera si no hay Wi-Fi
-
-    WiFiManagerParameter custom_my_id("my_id", "Mi Nombre/ID de Llavero", myDeviceId, 32);
-    WiFiManagerParameter custom_partner_id("partner_id", "ID de mi Pareja/Amigo", partnerId, 32);
-    WiFiManagerParameter custom_server("server", "URL Servidor Web (ej: https://...)", serverHost, 128);
-
-    wm.addParameter(&custom_my_id);
-    wm.addParameter(&custom_partner_id);
-    wm.addParameter(&custom_server);
 
     bool connected = false;
-    if (forcePortal) {
-        connected = wm.startConfigPortal("XpriT-Llavero-Setup");
-    } else {
-        connected = wm.autoConnect("XpriT-Llavero-Setup");
+
+    // 1. Intentar conexión directa si el usuario puso SSID en el código
+    if (!forcePortal && strlen(WIFI_SSID) > 0) {
+        Serial.printf("[WiFi] Intentando conexion directa a: %s ...\n", WIFI_SSID);
+        showConnectingScreen(WIFI_SSID);
+
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+        int attempts = 0;
+        while (WiFi.status() != WL_CONNECTED && attempts < 25) {
+            delay(500);
+            Serial.print(".");
+            attempts++;
+        }
+        Serial.println();
+
+        if (WiFi.status() == WL_CONNECTED) {
+            connected = true;
+            Serial.println("[WiFi] Conectado exitosamente con credenciales directas!");
+        } else {
+            Serial.println("[WiFi] No se pudo conectar a la red directa. Probando WiFiManager...");
+        }
     }
 
+    // 2. Si no conectó directamente, usar WiFiManager (Portal Cautivo)
     if (!connected) {
-        Serial.println("No se pudo conectar a WiFi. Apagando para cuidar bateria...");
-        tft.fillScreen(COLOR_BG);
-        tft.setCursor(6, 30);
-        tft.setTextColor(COLOR_ACCENT);
-        tft.println("Sin WiFi / Reposo");
-        delay(2000);
-        enterDeepSleep(10 * 60); // Duerme 10 minutos
+        WiFiManager wm;
+        wm.setConnectTimeout(15);       // Tiempo maximo intentando conectar a red guardada
+        wm.setConfigPortalTimeout(180); // 3 minutos de espera en modo AP antes de suspender
+
+        // Callback visual cuando entra en modo Portal Cautivo (AP)
+        wm.setAPCallback([](WiFiManager *myWM) {
+            Serial.println("\n--------------------------------------------------------");
+            Serial.println(" [WIFI] MODO PORTAL CAUTIVO ACTIVADO");
+            Serial.printf(" [WIFI] 1. Desde tu celular o PC conectate a la red Wi-Fi: %s\n", myWM->getConfigPortalSSID().c_str());
+            Serial.printf(" [WIFI] 2. Abre tu navegador en: http://%s\n", WiFi.softAPIP().toString().c_str());
+            Serial.println("--------------------------------------------------------\n");
+
+            showConfigPortalScreen(myWM->getConfigPortalSSID().c_str());
+        });
+
+        // Parámetros personalizables en el portal
+        WiFiManagerParameter custom_my_id("my_id", "Mi Nombre/ID de Llavero", myDeviceId, 32);
+        WiFiManagerParameter custom_partner_id("partner_id", "ID de mi Pareja/Amigo", partnerId, 32);
+        WiFiManagerParameter custom_server("server", "URL Servidor (ej: https://...)", serverHost, 128);
+
+        wm.addParameter(&custom_my_id);
+        wm.addParameter(&custom_partner_id);
+        wm.addParameter(&custom_server);
+
+        if (!forcePortal) {
+            showConnectingScreen("WiFi Guardado");
+        }
+
+        if (forcePortal) {
+            connected = wm.startConfigPortal("XpriT-Llavero-Setup");
+        } else {
+            connected = wm.autoConnect("XpriT-Llavero-Setup");
+        }
+
+        // Guardar parámetros si se cambiaron en el portal web
+        if (connected) {
+            if (strlen(custom_my_id.getValue()) > 0) {
+                strcpy(myDeviceId, custom_my_id.getValue());
+                prefs.putString("my_id", myDeviceId);
+            }
+            if (strlen(custom_partner_id.getValue()) > 0) {
+                strcpy(partnerId, custom_partner_id.getValue());
+                prefs.putString("partner_id", partnerId);
+            }
+            if (strlen(custom_server.getValue()) > 0) {
+                strcpy(serverHost, custom_server.getValue());
+                prefs.putString("server_host", serverHost);
+            }
+        }
     }
 
-    // Guardar parámetros si se cambiaron en el portal
-    if (strlen(custom_my_id.getValue()) > 0) {
-        strcpy(myDeviceId, custom_my_id.getValue());
-        prefs.putString("my_id", myDeviceId);
-    }
-    if (strlen(custom_partner_id.getValue()) > 0) {
-        strcpy(partnerId, custom_partner_id.getValue());
-        prefs.putString("partner_id", partnerId);
-    }
-    if (strlen(custom_server.getValue()) > 0) {
-        strcpy(serverHost, custom_server.getValue());
-        prefs.putString("server_host", serverHost);
+    // Si fallaron todos los intentos de conexión Wi-Fi
+    if (!connected) {
+        Serial.println("\n[WiFi] No fue posible conectar al Wi-Fi.");
+        showErrorScreen("Sin WiFi", "Revisa red/clave");
+        delay(3000);
+
+        #if ENABLE_DEEP_SLEEP
+            enterDeepSleep(10 * 60); // Duerme 10 minutos
+        #else
+            Serial.println("[Modo USB] Esperando 10 segundos antes de reiniciar...");
+            delay(10000);
+            ESP.restart();
+        #endif
     }
 
-    // Comprobar si despertó por pulsar el botón mientras estaba despierto
+    // Wi-Fi conectado exitosamente
+    Serial.println("\n========================================================");
+    Serial.printf(" [WiFi] CONECTADO A: %s\n", WiFi.SSID().c_str());
+    Serial.printf(" [WiFi] IP ASIGNADA:  %s\n", WiFi.localIP().toString().c_str());
+    Serial.printf(" [WiFi] POTENCIA:     %d dBm\n", WiFi.RSSI());
+    Serial.println("========================================================\n");
+
+    showConnectedScreen();
+    delay(1500);
+
+    // Si el botón está pulsado, enviar mensaje rápido
     if (digitalRead(BUTTON_PIN) == LOW) {
         sendQuickReply();
     }
 
-    // Consultar nuevos mensajes
+    // Primera consulta al servidor
     checkServerMessages();
+    lastPollMillis = millis();
 
-    // Entrar en modo Deep Sleep para que la batería dure días
-    enterDeepSleep(5 * 60); // Consultar cada 5 minutos
+    #if ENABLE_DEEP_SLEEP
+        // En modo ahorro de batería entra a Deep Sleep
+        enterDeepSleep(5 * 60); // Consultar cada 5 minutos
+    #else
+        Serial.println("[Modo USB] Manteniendo ESP32 despierto para pruebas continuas.");
+    #endif
 }
 
 void loop() {
-    // No se usa loop porque el ESP32 entra en Deep Sleep al final del setup
+#if ENABLE_DEEP_SLEEP
+    // En modo Deep Sleep no se ejecuta el loop
+#else
+    // Modo desarrollo por USB: bucle continuo sin apagar el ESP32
+    if (digitalRead(BUTTON_PIN) == LOW) {
+        delay(200); // Debounce
+        Serial.println("\n[Boton] Pulsado -> Enviando respuesta rapida...");
+        sendQuickReply();
+        delay(1000);
+        checkServerMessages();
+        lastPollMillis = millis();
+    }
+
+    if (millis() - lastPollMillis >= (POLL_INTERVAL_SECONDS * 1000UL)) {
+        lastPollMillis = millis();
+        Serial.println("\n[Loop] Consulta periodica al servidor...");
+        checkServerMessages();
+    }
+
+    delay(50);
+#endif
 }
 
 // -------------------------------------------------------------------------------------
-// INICIALIZACIÓN DE PANTALLA ST7735S (80x160 IPS)
+// INICIALIZACIÓN Y PANTALLAS EN EL TFT ST7735S (80x160 IPS)
 // -------------------------------------------------------------------------------------
 void setupDisplay() {
     pinMode(TFT_BLK, OUTPUT);
-    digitalWrite(TFT_BLK, HIGH); // Encender luz de fondo
+    digitalWrite(TFT_BLK, HIGH); // Encender retroiluminación
 
-    // Inicializar para el panel de 80x160
     tft.initR(INITR_MINI160x80);
-    tft.setRotation(3);       // Modo horizontal (160 px ancho x 80 px alto)
-    tft.invertDisplay(true);  // Obligatorio para IPS para tener colores naturales
+    tft.setRotation(3);       // Modo apaisado (160 de ancho x 80 de alto)
+    tft.invertDisplay(true);  // Colores reales para panel IPS ST7735S
     tft.fillScreen(COLOR_BG);
 }
 
-void showConnectingScreen() {
+void showConnectingScreen(const char* targetName) {
     tft.fillScreen(COLOR_BG);
     tft.drawRect(0, 0, 160, 80, COLOR_HEADER);
     
-    tft.setCursor(10, 20);
+    tft.setCursor(8, 14);
     tft.setTextColor(COLOR_ACCENT);
     tft.setTextSize(1);
     tft.println("XpriT ESP-KC");
     
     tft.setTextColor(COLOR_TEXT);
-    tft.setCursor(10, 36);
+    tft.setCursor(8, 30);
     tft.printf("Hola, %s!\n", myDeviceId);
     
     tft.setTextColor(COLOR_CYAN);
-    tft.setCursor(10, 52);
+    tft.setCursor(8, 48);
     tft.println("Conectando WiFi...");
+    tft.setTextColor(COLOR_MUTED);
+    tft.setCursor(8, 62);
+    tft.print(targetName);
+}
+
+void showConnectedScreen() {
+    tft.fillScreen(COLOR_BG);
+    tft.drawRect(0, 0, 160, 80, COLOR_SUCCESS);
+
+    tft.setCursor(8, 14);
+    tft.setTextColor(COLOR_SUCCESS);
+    tft.setTextSize(1);
+    tft.println("WiFi Conectado!");
+
+    tft.setTextColor(COLOR_TEXT);
+    tft.setCursor(8, 32);
+    tft.printf("Red: %s\n", WiFi.SSID().c_str());
+
+    tft.setCursor(8, 48);
+    tft.setTextColor(COLOR_CYAN);
+    tft.printf("IP: %s\n", WiFi.localIP().toString().c_str());
+
+    tft.setCursor(8, 64);
+    tft.setTextColor(COLOR_MUTED);
+    tft.println("Buscando mensajes...");
+}
+
+void showConfigPortalScreen(const char* apName) {
+    tft.fillScreen(COLOR_BG);
+    tft.drawRect(0, 0, 160, 80, COLOR_ACCENT);
+
+    tft.setCursor(6, 6);
+    tft.setTextColor(COLOR_ACCENT);
+    tft.setTextSize(1);
+    tft.println("CONFIGURAR WIFI");
+
+    tft.setTextColor(COLOR_TEXT);
+    tft.setCursor(6, 20);
+    tft.println("1. Conectate a WiFi:");
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(6, 30);
+    tft.println(apName);
+
+    tft.setTextColor(COLOR_TEXT);
+    tft.setCursor(6, 46);
+    tft.println("2. Entra en navegador:");
+    tft.setTextColor(COLOR_CYAN);
+    tft.setCursor(6, 56);
+    tft.println("http://192.168.4.1");
+}
+
+void showIdleScreen() {
+    tft.fillScreen(COLOR_BG);
+    tft.drawRect(0, 0, 160, 80, COLOR_HEADER);
+    tft.fillRect(0, 0, 160, 16, COLOR_HEADER);
+
+    tft.setCursor(4, 4);
+    tft.setTextColor(COLOR_CYAN);
+    tft.setTextSize(1);
+    tft.printf("Llavero: %s", myDeviceId);
+
+    tft.setCursor(8, 26);
+    tft.setTextColor(COLOR_TEXT);
+    tft.println("Todo al dia :)");
+
+    tft.setCursor(8, 42);
+    tft.setTextColor(COLOR_MUTED);
+    tft.println("Sin mensajes nuevos");
+
+    tft.setCursor(8, 62);
+    tft.setTextColor(COLOR_ACCENT);
+    tft.print("XpriT ESP-KC");
+
+    tft.setCursor(110, 62);
+    tft.setTextColor(COLOR_MUTED);
+    tft.printf("#%d", lastMessageId);
+}
+
+void showErrorScreen(const char* title, const char* detail) {
+    tft.fillScreen(COLOR_BG);
+    tft.drawRect(0, 0, 160, 80, COLOR_ACCENT);
+
+    tft.setCursor(8, 10);
+    tft.setTextColor(COLOR_ACCENT);
+    tft.setTextSize(1);
+    tft.println(title);
+
+    tft.setTextColor(COLOR_TEXT);
+    tft.setCursor(8, 28);
+    tft.println(detail);
+
+    tft.setCursor(8, 46);
+    tft.setTextColor(COLOR_MUTED);
+    tft.println("Revisa Serial/URL");
+
+    tft.setCursor(8, 62);
+    tft.setTextColor(COLOR_CYAN);
+    tft.printf("IP: %s", WiFi.localIP().toString().c_str());
 }
 
 // -------------------------------------------------------------------------------------
-// CONSULTA AL SERVIDOR WEB (POLLING)
+// CONSULTA AL SERVIDOR WEB (POLLING CON SOPORTE HTTP Y HTTPS CON TIMEOUT)
 // -------------------------------------------------------------------------------------
 void checkServerMessages() {
-    WiFiClientSecure client;
-    client.setInsecure(); // Permite HTTPS sin validar certificados de raíz
-
-    HTTPClient http;
     String url = String(serverHost) + "/api/espkc/poll?recipient=" + String(myDeviceId) + "&sinceId=" + String(lastMessageId);
     Serial.printf("[HTTP] Consultando: %s\n", url.c_str());
 
-    http.begin(client, url);
-    int httpCode = http.GET();
+    HTTPClient http;
+    http.setTimeout(8000); // 8 segundos maximo de espera para no congelar
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+
+    int httpCode = -1;
+    if (url.startsWith("https://")) {
+        WiFiClientSecure client;
+        client.setInsecure(); // No validar certificados SSL para mayor compatibilidad
+        client.setTimeout(8);
+        http.begin(client, url);
+        httpCode = http.GET();
+    } else {
+        WiFiClient client;
+        client.setTimeout(8);
+        http.begin(client, url);
+        httpCode = http.GET();
+    }
 
     if (httpCode == 200) {
         String payload = http.getString();
-        Serial.printf("[HTTP] Respuesta: %s\n", payload.c_str());
+        Serial.printf("[HTTP] Respuesta recibida (200 OK): %s\n", payload.c_str());
 
         StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, payload);
@@ -240,27 +447,34 @@ void checkServerMessages() {
             const char* content = doc["message"]["content"];
             bool hasImage = doc["message"]["hasImage"];
 
-            Serial.printf(">>> NUEVO MENSAJE DETECTADO! ID: %d De: %s Tipo: %s <<<\n", newId, from, type);
+            Serial.printf(">>> NUEVO MENSAJE DETECTADO! ID: #%d | De: %s | Tipo: %s <<<\n", newId, from, type);
 
             if (hasImage) {
-                // Descargar y renderizar imagen binaria RGB565 (25.6 KB)
+                // Descargar imagen RGB565 (25.6 KB)
                 fetchAndDrawRawImage(newId);
             } else {
                 // Mostrar tarjeta de texto
                 showMessageUI(from, content, newId);
             }
 
-            // Guardar último ID para no volver a descargarlo
             lastMessageId = newId;
             prefs.putInt("last_id", newId);
 
-            // Mantener pantalla encendida 15 segundos para que la persona lo lea
-            delay(15000);
+            // Mantener mensaje en pantalla 12 segundos
+            delay(12000);
         } else {
-            Serial.println("No hay mensajes nuevos.");
+            Serial.println("[HTTP] Servidor respondio: No hay mensajes pendientes.");
+            showIdleScreen();
         }
     } else {
-        Serial.printf("[HTTP] Error en consulta: %d\n", httpCode);
+        Serial.printf("[HTTP] Error en consulta: Codigo %d\n", httpCode);
+        char errBuf[32];
+        if (httpCode > 0) {
+            snprintf(errBuf, sizeof(errBuf), "HTTP Codigo %d", httpCode);
+        } else {
+            snprintf(errBuf, sizeof(errBuf), "Fallo de conexion");
+        }
+        showErrorScreen("Error Servidor", errBuf);
     }
 
     http.end();
@@ -270,27 +484,38 @@ void checkServerMessages() {
 // DESCARGA Y RENDERIZADO DE IMAGEN BINARIA RGB565 (160x80 = 25.600 bytes)
 // -------------------------------------------------------------------------------------
 void fetchAndDrawRawImage(int messageId) {
-    WiFiClientSecure client;
-    client.setInsecure();
+    String url = String(serverHost) + "/api/espkc/raw/" + String(messageId);
+    Serial.printf("[HTTP] Descargando imagen RGB565 desde: %s\n", url.c_str());
 
     HTTPClient http;
-    String url = String(serverHost) + "/api/espkc/raw/" + String(messageId);
-    Serial.printf("[HTTP] Descargando imagen RGB565: %s\n", url.c_str());
+    http.setTimeout(12000);
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
-    http.begin(client, url);
-    int httpCode = http.GET();
+    int httpCode = -1;
+    if (url.startsWith("https://")) {
+        WiFiClientSecure client;
+        client.setInsecure();
+        client.setTimeout(12);
+        http.begin(client, url);
+        httpCode = http.GET();
+    } else {
+        WiFiClient client;
+        client.setTimeout(12);
+        http.begin(client, url);
+        httpCode = http.GET();
+    }
 
     if (httpCode == 200) {
         int totalBytes = http.getSize();
-        Serial.printf("Tamano de imagen: %d bytes\n", totalBytes);
+        Serial.printf("[HTTP] Tamano reportado de imagen: %d bytes\n", totalBytes);
 
-        // Buffer dinámico para los 25.600 bytes
         uint8_t* imgBuffer = (uint8_t*)malloc(160 * 80 * 2);
         if (imgBuffer != NULL) {
             WiFiClient* stream = http.getStreamPtr();
             int bytesRead = 0;
-            
-            while (http.connected() && bytesRead < 160 * 80 * 2) {
+            unsigned long startFetch = millis();
+
+            while (http.connected() && bytesRead < (160 * 80 * 2) && (millis() - startFetch < 10000)) {
                 size_t available = stream->available();
                 if (available) {
                     int c = stream->readBytes(imgBuffer + bytesRead, (160 * 80 * 2) - bytesRead);
@@ -299,13 +524,19 @@ void fetchAndDrawRawImage(int messageId) {
                 delay(1);
             }
 
-            // Dibujar la imagen completa en el display ST7735S
-            tft.drawRGBBitmap(0, 0, (uint16_t*)imgBuffer, 160, 80);
+            Serial.printf("[HTTP] Bytes leidos: %d / 25600\n", bytesRead);
+            if (bytesRead == 160 * 80 * 2) {
+                tft.drawRGBBitmap(0, 0, (uint16_t*)imgBuffer, 160, 80);
+                Serial.println("[TFT] Imagen renderizada correctamente!");
+            } else {
+                Serial.println("[HTTP] Descarga incompleta de la imagen.");
+            }
             free(imgBuffer);
-            Serial.println("Imagen renderizada con exito en TFT!");
         } else {
-            Serial.println("Error: Memoria insuficiente para imagen");
+            Serial.println("[Memoria] Error: RAM insuficiente para buffer de imagen.");
         }
+    } else {
+        Serial.printf("[HTTP] Error descargando imagen: %d\n", httpCode);
     }
     http.end();
 }
@@ -323,19 +554,19 @@ void showMessageUI(const char* from, const char* content, int id) {
     tft.setTextSize(1);
     tft.printf("DE: %s", from);
 
-    // Badge ID
+    // Badge con ID del mensaje
     tft.setCursor(124, 4);
     tft.setTextColor(COLOR_ACCENT);
     tft.printf("#%d", id);
 
-    // Contenido del mensaje (con ajuste de línea automático)
+    // Contenido del mensaje
     tft.setCursor(6, 24);
     tft.setTextColor(COLOR_TEXT);
     tft.setTextSize(1);
     tft.setTextWrap(true);
     tft.print(content);
 
-    // Footer
+    // Footer inferior
     tft.drawFastHLine(0, 68, 160, COLOR_HEADER);
     tft.setCursor(4, 71);
     tft.setTextColor(COLOR_MUTED);
@@ -344,66 +575,69 @@ void showMessageUI(const char* from, const char* content, int id) {
 }
 
 // -------------------------------------------------------------------------------------
-// ENVIAR RESPUESTA RÁPIDA (HEARTBEAT / "TE ESTOY PENSANDO")
+// ENVIAR RESPUESTA RÁPIDA ("TE ESTOY PENSANDO")
 // -------------------------------------------------------------------------------------
 void sendQuickReply() {
     tft.fillScreen(COLOR_BG);
-    tft.setCursor(10, 30);
+    tft.setCursor(10, 24);
     tft.setTextColor(COLOR_ACCENT);
     tft.setTextSize(1);
     tft.println("Enviando amor a");
     tft.setTextColor(COLOR_TEXT);
+    tft.setCursor(10, 40);
     tft.printf("-> %s...\n", partnerId);
 
-    WiFiClientSecure client;
-    client.setInsecure();
+    String url = String(serverHost) + "/api/espkc/messages";
+    String jsonBody = "{\"from\":\"" + String(myDeviceId) + "\",\"to\":\"" + String(partnerId) + "\",\"type\":\"text\",\"content\":\"<3 Te estoy pensando!\"}";
 
     HTTPClient http;
-    String url = String(serverHost) + "/api/espkc/messages";
-    http.begin(client, url);
-    http.addHeader("Content-Type", "application/json");
+    http.setTimeout(8000);
 
-    String jsonBody = "{\"from\":\"" + String(myDeviceId) + "\",\"to\":\"" + String(partnerId) + "\",\"type\":\"text\",\"content\":\"<3 Te estoy pensando!\"}";
-    int httpCode = http.POST(jsonBody);
+    int httpCode = -1;
+    if (url.startsWith("https://")) {
+        WiFiClientSecure client;
+        client.setInsecure();
+        http.begin(client, url);
+        http.addHeader("Content-Type", "application/json");
+        httpCode = http.POST(jsonBody);
+    } else {
+        WiFiClient client;
+        http.begin(client, url);
+        http.addHeader("Content-Type", "application/json");
+        httpCode = http.POST(jsonBody);
+    }
 
+    tft.setCursor(10, 58);
     if (httpCode == 201 || httpCode == 200) {
-        tft.setCursor(10, 50);
-        tft.setTextColor(COLOR_CYAN);
+        tft.setTextColor(COLOR_SUCCESS);
         tft.println("Mensaje Enviado!");
     } else {
-        tft.setCursor(10, 50);
         tft.setTextColor(COLOR_ACCENT);
-        tft.println("Error al enviar");
+        tft.printf("Error al enviar (%d)", httpCode);
     }
     http.end();
-    delay(2500);
+    delay(2000);
 }
 
 // -------------------------------------------------------------------------------------
-// APAGADO DE PANTALLA Y ENTRADA A DEEP SLEEP (AHORRO MÁXIMO DE BATERÍA)
+// APAGADO Y DEEP SLEEP (SOLO SE USA SI ENABLE_DEEP_SLEEP ESTÁ EN TRUE)
 // -------------------------------------------------------------------------------------
 void enterDeepSleep(int sleepSeconds) {
-    Serial.printf("[Power] Entrando en Deep Sleep por %d segundos...\n", sleepSeconds);
+    Serial.printf("\n[Power] Entrando en Deep Sleep por %d segundos...\n", sleepSeconds);
 
-    // 1. Apagar retroiluminación y pantalla
     digitalWrite(TFT_BLK, LOW);
     tft.enableSleep(true);
 
-    // 2. Apagar radio Wi-Fi
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
 
-    // 3. Configurar despertares: por temporizador Y por botón físico
     esp_sleep_enable_timer_wakeup((uint64_t)sleepSeconds * 1000000ULL);
 
 #if defined(CONFIG_IDF_TARGET_ESP32C3)
-    // ESP32-C3 admite wakeup en cualquier GPIO
     esp_deep_sleep_enable_gpio_wakeup(1ULL << BUTTON_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
 #else
-    // ESP32 clásico (WROOM) usa ext0 en pines RTC (GPIO 0 es el botón BOOT)
     esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN, 0);
 #endif
 
-    // 4. Iniciar Deep Sleep
     esp_deep_sleep_start();
 }
