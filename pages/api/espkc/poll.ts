@@ -14,35 +14,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const messages = getMessages()
 
-    // Find pending messages targeted to this user or 'all', with ID > lastId
-    const pending = messages.filter(
+    // Find all messages targeted to this user or 'all'
+    const userMessages = messages.filter(
       (m) =>
-        m.id > lastId &&
-        (m.to.toLowerCase() === targetRecipient || m.to.toLowerCase() === 'all')
+        m.to.toLowerCase() === targetRecipient || m.to.toLowerCase() === 'all'
     )
 
-    if (pending.length === 0) {
+    if (userMessages.length === 0) {
       return res.status(200).json({
+        hasMessage: false,
         hasNew: false,
-        lastCheckedId: lastId,
+        message: null,
       })
     }
 
-    // Deliver the next unread message in order
-    const nextMsg = pending[0]
+    // Deliver the absolute latest message sent to this recipient
+    const latestMsg = userMessages[userMessages.length - 1]
+    const isNew = latestMsg.id > lastId
 
     return res.status(200).json({
-      hasNew: true,
-      pendingCount: pending.length,
+      hasMessage: true,
+      hasNew: isNew,
+      isNew: isNew,
+      pendingCount: userMessages.length,
       message: {
-        id: nextMsg.id,
-        from: nextMsg.from,
-        to: nextMsg.to,
-        type: nextMsg.type,
-        content: nextMsg.content,
-        timestamp: nextMsg.timestamp,
-        hasImage: nextMsg.hasImage,
-        rawImageUrl: nextMsg.hasImage ? `/api/espkc/raw/${nextMsg.id}` : null,
+        id: latestMsg.id,
+        from: latestMsg.from,
+        to: latestMsg.to,
+        type: latestMsg.type,
+        content: latestMsg.content,
+        timestamp: latestMsg.timestamp,
+        hasImage: latestMsg.hasImage,
+        rawImageUrl: latestMsg.hasImage ? `/api/espkc/raw/${latestMsg.id}` : null,
       },
     })
   } catch (error) {

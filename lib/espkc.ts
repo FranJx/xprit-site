@@ -65,8 +65,9 @@ export async function processAndSaveImage(
   const rawFilename = `img_${messageId}_160x80.raw`
   const rawPath = path.join(imagesDir, rawFilename)
 
-  // Resize to exactly 160x80 (horizontal landscape)
+  // Resize to exactly 160x80 (horizontal landscape) with EXIF auto-rotation
   const { data } = await sharp(inputBuffer)
+    .rotate()
     .resize(160, 80, { fit: 'cover' })
     .removeAlpha()
     .raw()

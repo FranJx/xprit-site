@@ -62,15 +62,18 @@ const char* WIFI_SSID = ""; // Tu red Wi-Fi (ej: "MiCasa_2.4G")
 const char* WIFI_PASS = ""; // Tu clave de Wi-Fi
 
 // =====================================================================================
-// 2. MODO DESARROLLO / AHORRO DE BATERÍA
+// 2. MODO AHORRO DE BATERÍA (DEEP SLEEP)
 // =====================================================================================
-// false: Mantiene el ESP32 despierto y consulta periódicamente (ideal con cable USB conectado).
-// true:  Entra en Deep Sleep tras cada consulta para maximizar batería (ideal para llavero).
-#define ENABLE_DEEP_SLEEP      false
-#define POLL_INTERVAL_SECONDS  15 // Cada cuántos segundos consulta en modo despierto
+// true:  Muestra el último mensaje por DISPLAY_ON_SECONDS y entra en Deep Sleep.
+//        Despierta al presionar el BOTÓN o periódicamente por temporizador.
+// false: Mantiene el ESP32 despierto continuamente (ideal para pruebas con cable USB).
+#define ENABLE_DEEP_SLEEP          true
+#define DISPLAY_ON_SECONDS         20  // Segundos que el mensaje se queda en pantalla antes de dormir
+#define SLEEP_DURATION_MINUTES     5   // Minutos que duerme antes de volver a consultar
+#define POLL_INTERVAL_SECONDS      15  // Si ENABLE_DEEP_SLEEP es false, intervalo en segundos
 
 // Si los colores se ven como en negativo (ej. blanco por negro o cyan por rojo), cámbialo a true/false:
-#define INVERT_DISPLAY_COLORS  false
+#define INVERT_DISPLAY_COLORS      false
 
 // =====================================================================================
 // 3. IDENTIFICADORES Y SERVIDOR
@@ -117,7 +120,7 @@ Preferences prefs;
 // Modo 1 (Por defecto): Byteswap (0x00F8). Convierte el verdoso en Rojo puro en ESP32.
 // Modo 2: BGR swap (0x001F). Para pantallas que intercambian Rojo y Azul.
 // Modo 0: RGB directo clásico (0xF800).
-#define COLOR_CALIBRATION_MODE 1
+#define COLOR_CALIBRATION_MODE 2
 
 #if COLOR_CALIBRATION_MODE == 1
   // Modo 1: Byteswap para pantallas con orden Little-Endian en bus SPI
@@ -178,7 +181,17 @@ void setup() {
     delay(100); // Estabilizar lectura del pin
 
     setupDisplay();
-    showColorCalibrationTest();
+
+    // Comprobar motivo del despertar
+    esp_sleep_wakeup_cause_t wakeupReason = esp_sleep_get_wakeup_cause();
+    bool wokeFromSleep = (wakeupReason == ESP_SLEEP_WAKEUP_EXT0 || 
+                          wakeupReason == ESP_SLEEP_WAKEUP_GPIO || 
+                          wakeupReason == ESP_SLEEP_WAKEUP_TIMER);
+
+    // Solo mostrar test de color en arranque en frío (al enchufar cable/batería)
+    if (!wokeFromSleep) {
+        showColorCalibrationTest();
+    }
 
     // Iniciar memoria flash no volátil
     prefs.begin("espkc", false);
@@ -190,10 +203,14 @@ void setup() {
     Serial.printf("[Config] Mi ID: %s | Pareja: %s | Ultimo Msg ID: #%d\n", myDeviceId, partnerId, lastMessageId);
     Serial.printf("[Config] Servidor: %s\n", serverHost);
 
-    // ¿Se mantuvo presionado el botón al arrancar? (Forzar portal)
-    bool forcePortal = (digitalRead(BUTTON_PIN) == LOW);
-    if (forcePortal) {
-        Serial.println("[Boton] Boton presionado al encender -> Forzando Portal Cautivo.");
+    // Solo forzar portal si se arranca en frío manteniendo pulsado el botón (evita falsos positivos al despertar)
+    bool forcePortal = false;
+    if (digitalRead(BUTTON_PIN) == LOW && !wokeFromSleep) {
+        delay(600);
+        if (digitalRead(BUTTON_PIN) == LOW) {
+            forcePortal = true;
+            Serial.println("[Boton] Boton presionado al encender -> Forzando Portal Cautivo.");
+        }
     }
 
     bool connected = false;
@@ -310,8 +327,8 @@ void setup() {
     lastPollMillis = millis();
 
     #if ENABLE_DEEP_SLEEP
-        // En modo ahorro de batería entra a Deep Sleep
-        enterDeepSleep(5 * 60); // Consultar cada 5 minutos
+        // En modo ahorro de batería entra a Deep Sleep (despierta por botón o timer)
+        enterDeepSleep(SLEEP_DURATION_MINUTES * 60);
     #else
         Serial.println("[Modo USB] Manteniendo ESP32 despierto para pruebas continuas.");
     #endif
@@ -495,9 +512,13 @@ void showErrorScreen(const char* title, const char* detail) {
 // -------------------------------------------------------------------------------------
 // CONSULTA AL SERVIDOR WEB (POLLING CON SOPORTE HTTP Y HTTPS CON TIMEOUT)
 // -------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------
+// CONSULTA AL SERVIDOR WEB (POLLING CON SOPORTE HTTP Y HTTPS CON TIMEOUT)
+// -------------------------------------------------------------------------------------
 void checkServerMessages() {
-    String url = String(serverHost) + "/api/espkc/poll?recipient=" + String(myDeviceId) + "&sinceId=" + String(lastMessageId);
-    Serial.printf("\n[HTTP] Consultando: %s\n", url.c_str());
+    // Consultar siempre el último mensaje dirigido a este destinatario (sin filtrar por sinceId)
+    String url = String(serverHost) + "/api/espkc/poll?recipient=" + String(myDeviceId);
+    Serial.printf("\n[HTTP] Consultando ultimo mensaje para '%s': %s\n", myDeviceId, url.c_str());
 
     HTTPClient http;
     http.setTimeout(10000); // 10 segundos maximo de espera
@@ -531,31 +552,34 @@ void checkServerMessages() {
         StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, payload);
 
-        if (!error && doc["hasNew"] == true) {
-            int newId = doc["message"]["id"];
+        bool hasMessage = (!error && (doc["hasMessage"] == true || doc.containsKey("message")));
+
+        if (hasMessage && doc["message"].is<JsonObject>()) {
+            int msgId = doc["message"]["id"];
             const char* from = doc["message"]["from"];
             const char* type = doc["message"]["type"];
             const char* content = doc["message"]["content"];
             bool hasImage = doc["message"]["hasImage"];
 
-            Serial.printf(">>> NUEVO MENSAJE DETECTADO! ID: #%d | De: %s | Tipo: %s <<<\n", newId, from, type);
+            Serial.printf(">>> MOSTRANDO MENSAJE! ID: #%d | De: %s | Tipo: %s <<<\n", msgId, from, type);
 
             if (hasImage) {
-                // Descargar imagen RGB565 (25.6 KB)
-                fetchAndDrawRawImage(newId);
+                // Descargar imagen RGB565 calibrada
+                fetchAndDrawRawImage(msgId);
             } else {
-                // Mostrar tarjeta de texto
-                showMessageUI(from, content, newId);
+                // Mostrar tarjeta de texto con el mensaje recibido
+                showMessageUI(from, content, msgId);
             }
 
-            lastMessageId = newId;
-            prefs.putInt("last_id", newId);
+            lastMessageId = msgId;
+            prefs.putInt("last_id", msgId);
 
-            // Mantener mensaje en pantalla 12 segundos
-            delay(12000);
+            // Mantener mensaje en pantalla para que el usuario pueda apreciarlo
+            Serial.printf("[Pantalla] Manteniendo visible por %d segundos...\n", DISPLAY_ON_SECONDS);
+            delay(DISPLAY_ON_SECONDS * 1000UL);
         } else {
-            Serial.println("[HTTP] Servidor respondio: No hay mensajes pendientes.");
-            showIdleScreen();
+            Serial.println("[HTTP] No hay mensajes registrados en el servidor para este usuario.");
+            tft.fillScreen(COLOR_BG);
         }
     } else {
         Serial.printf("[HTTP] Error en consulta: Codigo %d\n", httpCode);
@@ -566,6 +590,7 @@ void checkServerMessages() {
             snprintf(errBuf, sizeof(errBuf), "Fallo de conexion");
         }
         showErrorScreen("Error Servidor", errBuf);
+        delay(3000);
     }
 
     http.end();
@@ -622,14 +647,31 @@ void fetchAndDrawRawImage(int messageId) {
 
             Serial.printf("[HTTP] Bytes leidos: %d / 25600\n", bytesRead);
             if (bytesRead == 160 * 80 * 2) {
-#if COLOR_CALIBRATION_MODE == 1
-                uint16_t* p = (uint16_t*)imgBuffer;
+                uint16_t* p16 = (uint16_t*)imgBuffer;
                 for (int i = 0; i < 160 * 80; i++) {
-                    p[i] = (p[i] >> 8) | (p[i] << 8);
-                }
+                    uint8_t byteH = imgBuffer[i * 2];
+                    uint8_t byteL = imgBuffer[i * 2 + 1];
+                    uint16_t rawRgb = ((uint16_t)byteH << 8) | byteL;
+
+                    uint16_t r = (rawRgb >> 11) & 0x1F;
+                    uint16_t g = (rawRgb >> 5) & 0x3F;
+                    uint16_t b = rawRgb & 0x1F;
+
+#if COLOR_CALIBRATION_MODE == 2
+                    // Modo 2: Pantalla en modo BGR (el activo del usuario)
+                    // Intercambiar canal Rojo y Azul para panel BGR
+                    p16[i] = (b << 11) | (g << 5) | r;
+#elif COLOR_CALIBRATION_MODE == 1
+                    // Modo 1: Byteswap
+                    p16[i] = (byteL << 8) | byteH;
+#else
+                    // Modo 0: RGB nativo
+                    p16[i] = rawRgb;
 #endif
-                tft.drawRGBBitmap(0, 0, (uint16_t*)imgBuffer, 160, 80);
-                Serial.println("[TFT] Imagen renderizada correctamente!");
+                }
+
+                tft.drawRGBBitmap(0, 0, p16, 160, 80);
+                Serial.println("[TFT] Imagen renderizada correctamente con colores calibrados!");
             } else {
                 Serial.println("[HTTP] Descarga incompleta de la imagen.");
             }
