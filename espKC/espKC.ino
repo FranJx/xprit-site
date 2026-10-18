@@ -50,6 +50,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
+#include <memory>
 
 // =====================================================================================
 // 1. CONFIGURACIÓN RÁPIDA DE WI-FI (OPCIONAL PERO RECOMENDADO PARA PRUEBAS)
@@ -74,7 +75,7 @@ const char* WIFI_PASS = ""; // Tu clave de Wi-Fi
 char myDeviceId[32]    = "Guada";
 char partnerId[32]     = "Fran";
 // URL de tu servidor Next.js (puede ser tu IP local "http://192.168.1.X:3000" o dominio de Railway/Vercel)
-char serverHost[128]   = "https://xprit-site.vercel.app";
+char serverHost[128]   = "https://xprit-robotics.com";
 int lastMessageId      = 0;
 
 // =====================================================================================
@@ -438,25 +439,32 @@ void showErrorScreen(const char* title, const char* detail) {
 // -------------------------------------------------------------------------------------
 void checkServerMessages() {
     String url = String(serverHost) + "/api/espkc/poll?recipient=" + String(myDeviceId) + "&sinceId=" + String(lastMessageId);
-    Serial.printf("[HTTP] Consultando: %s\n", url.c_str());
+    Serial.printf("\n[HTTP] Consultando: %s\n", url.c_str());
 
     HTTPClient http;
-    http.setTimeout(8000); // 8 segundos maximo de espera para no congelar
+    http.setTimeout(10000); // 10 segundos maximo de espera
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
-    int httpCode = -1;
+    // Mantenemos el cliente activo durante TODO el tiempo de vida de la funcion
+    std::unique_ptr<WiFiClient> client;
     if (url.startsWith("https://")) {
-        WiFiClientSecure client;
-        client.setInsecure(); // No validar certificados SSL para mayor compatibilidad
-        client.setTimeout(8);
-        http.begin(client, url);
-        httpCode = http.GET();
+        WiFiClientSecure* sec = new WiFiClientSecure();
+        sec->setInsecure(); // No validar certificados SSL para mayor compatibilidad
+        sec->setTimeout(10);
+        client.reset(sec);
     } else {
-        WiFiClient client;
-        client.setTimeout(8);
-        http.begin(client, url);
-        httpCode = http.GET();
+        WiFiClient* plain = new WiFiClient();
+        plain->setTimeout(10);
+        client.reset(plain);
     }
+
+    if (!http.begin(*client, url)) {
+        Serial.println("[HTTP] Error: no se pudo iniciar la conexion HTTP.");
+        showErrorScreen("Error Conexion", "Fallo http.begin");
+        return;
+    }
+
+    int httpCode = http.GET();
 
     if (httpCode == 200) {
         String payload = http.getString();
@@ -513,22 +521,27 @@ void fetchAndDrawRawImage(int messageId) {
     Serial.printf("[HTTP] Descargando imagen RGB565 desde: %s\n", url.c_str());
 
     HTTPClient http;
-    http.setTimeout(12000);
+    http.setTimeout(15000);
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
-    int httpCode = -1;
+    std::unique_ptr<WiFiClient> client;
     if (url.startsWith("https://")) {
-        WiFiClientSecure client;
-        client.setInsecure();
-        client.setTimeout(12);
-        http.begin(client, url);
-        httpCode = http.GET();
+        WiFiClientSecure* sec = new WiFiClientSecure();
+        sec->setInsecure();
+        sec->setTimeout(15);
+        client.reset(sec);
     } else {
-        WiFiClient client;
-        client.setTimeout(12);
-        http.begin(client, url);
-        httpCode = http.GET();
+        WiFiClient* plain = new WiFiClient();
+        plain->setTimeout(15);
+        client.reset(plain);
     }
+
+    if (!http.begin(*client, url)) {
+        Serial.println("[HTTP] Error iniciando descarga de imagen.");
+        return;
+    }
+
+    int httpCode = http.GET();
 
     if (httpCode == 200) {
         int totalBytes = http.getSize();
@@ -540,7 +553,7 @@ void fetchAndDrawRawImage(int messageId) {
             int bytesRead = 0;
             unsigned long startFetch = millis();
 
-            while (http.connected() && bytesRead < (160 * 80 * 2) && (millis() - startFetch < 10000)) {
+            while (http.connected() && bytesRead < (160 * 80 * 2) && (millis() - startFetch < 12000)) {
                 size_t available = stream->available();
                 if (available) {
                     int c = stream->readBytes(imgBuffer + bytesRead, (160 * 80 * 2) - bytesRead);
@@ -616,31 +629,36 @@ void sendQuickReply() {
     String jsonBody = "{\"from\":\"" + String(myDeviceId) + "\",\"to\":\"" + String(partnerId) + "\",\"type\":\"text\",\"content\":\"<3 Te estoy pensando!\"}";
 
     HTTPClient http;
-    http.setTimeout(8000);
+    http.setTimeout(10000);
 
-    int httpCode = -1;
+    std::unique_ptr<WiFiClient> client;
     if (url.startsWith("https://")) {
-        WiFiClientSecure client;
-        client.setInsecure();
-        http.begin(client, url);
-        http.addHeader("Content-Type", "application/json");
-        httpCode = http.POST(jsonBody);
+        WiFiClientSecure* sec = new WiFiClientSecure();
+        sec->setInsecure();
+        sec->setTimeout(10);
+        client.reset(sec);
     } else {
-        WiFiClient client;
-        http.begin(client, url);
-        http.addHeader("Content-Type", "application/json");
-        httpCode = http.POST(jsonBody);
+        WiFiClient* plain = new WiFiClient();
+        plain->setTimeout(10);
+        client.reset(plain);
     }
 
-    tft.setCursor(10, 58);
-    if (httpCode == 201 || httpCode == 200) {
-        tft.setTextColor(COLOR_SUCCESS);
-        tft.println("Mensaje Enviado!");
-    } else {
-        tft.setTextColor(COLOR_ACCENT);
-        tft.printf("Error al enviar (%d)", httpCode);
+    if (http.begin(*client, url)) {
+        http.addHeader("Content-Type", "application/json");
+        int httpCode = http.POST(jsonBody);
+
+        tft.setCursor(10, 58);
+        if (httpCode == 201 || httpCode == 200) {
+            tft.setTextColor(COLOR_SUCCESS);
+            tft.println("Mensaje Enviado!");
+            Serial.println("[HTTP] Mensaje rapido enviado con exito!");
+        } else {
+            tft.setTextColor(COLOR_ACCENT);
+            tft.printf("Error al enviar (%d)", httpCode);
+            Serial.printf("[HTTP] Error enviando mensaje rapido: %d\n", httpCode);
+        }
+        http.end();
     }
-    http.end();
     delay(2000);
 }
 
