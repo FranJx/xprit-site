@@ -53,6 +53,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
+#include <LittleFS.h>
 #include <memory>
 
 // =====================================================================================
@@ -198,33 +199,130 @@ void fetchAndDrawRawImage(int messageId);
 void checkServerMessages();
 void sendQuickReply();
 void enterDeepSleep(int sleepSeconds);
+bool saveCachedImage(uint16_t* pixels, size_t pixelCount);
+bool showCachedImage();
+void showCachedContent();
+void drawStatusBorder(uint16_t color);
+bool connectWiFiQuick(int timeoutSeconds);
 
 unsigned long lastPollMillis = 0;
 
+// =====================================================================================
+// FUNCIONES DE CACHÉ LOCAL (LITTLEFS Y PREFERENCES) Y BORDES DE ESTADO
+// =====================================================================================
+
+// Dibuja un marco sutil de 2 píxeles en los bordes de la pantalla (160x80)
+void drawStatusBorder(uint16_t color) {
+    tft.drawRect(0, 0, 160, 80, color);
+    tft.drawRect(1, 1, 158, 78, color);
+}
+
+// Guarda los 25.600 bytes de la imagen calibrada en memoria Flash interna (LittleFS)
+bool saveCachedImage(uint16_t* pixels, size_t pixelCount) {
+    File f = LittleFS.open("/last_img.bin", "w");
+    if (!f) {
+        Serial.println("[LittleFS] Error: no se pudo abrir /last_img.bin para guardar.");
+        return false;
+    }
+    size_t written = f.write((uint8_t*)pixels, pixelCount * sizeof(uint16_t));
+    f.close();
+    Serial.printf("[LittleFS] Imagen guardada en memoria flash (%d bytes)\n", (int)written);
+    return (written == pixelCount * sizeof(uint16_t));
+}
+
+// Lee directamente línea por línea de LittleFS a la pantalla (toma solo ~15ms y 320 bytes de RAM)
+bool showCachedImage() {
+    if (!LittleFS.exists("/last_img.bin")) return false;
+    File f = LittleFS.open("/last_img.bin", "r");
+    if (!f) return false;
+    if (f.size() != (160 * 80 * 2)) {
+        f.close();
+        return false;
+    }
+
+    uint16_t lineBuf[160];
+    tft.setAddrWindow(0, 0, 160, 80);
+    tft.startWrite();
+    for (int y = 0; y < 80; y++) {
+        f.read((uint8_t*)lineBuf, 160 * sizeof(uint16_t));
+        tft.writePixels(lineBuf, 160);
+    }
+    tft.endWrite();
+    f.close();
+    return true;
+}
+
+// Muestra de inmediato lo último guardado al despertar (cero demora)
+void showCachedContent() {
+    bool hasCachedImage = prefs.getBool("last_has_img", false);
+    if (hasCachedImage && showCachedImage()) {
+        Serial.println("[Cache] Imagen mostrada instantaneamente desde memoria Flash.");
+        return;
+    }
+
+    if (lastMessageId > 0) {
+        char cachedFrom[32] = "";
+        char cachedContent[256] = "";
+        prefs.getString("last_from", cachedFrom, sizeof(cachedFrom));
+        prefs.getString("last_content", cachedContent, sizeof(cachedContent));
+        showMessageUI(cachedFrom, cachedContent, lastMessageId);
+        Serial.println("[Cache] Mensaje de texto mostrado instantaneamente desde memoria Flash.");
+        return;
+    }
+
+    // Si es el primer encendido y todavía no hay mensajes en memoria
+    showIdleScreen();
+}
+
+// Intenta conectar a Wi-Fi de forma rápida en segundo plano (timeout en segundos)
+bool connectWiFiQuick(int timeoutSeconds) {
+    Serial.printf("[WiFi] Intentando conectar en segundo plano (max %d seg)...\n", timeoutSeconds);
+    WiFi.mode(WIFI_STA);
+
+    if (strlen(WIFI_SSID) > 0) {
+        WiFi.begin(WIFI_SSID, WIFI_PASS);
+    } else {
+        WiFi.begin(); // Conectar a la última red guardada por el chip ESP32
+    }
+
+    int attempts = 0;
+    int maxAttempts = timeoutSeconds * 2;
+    while (WiFi.status() != WL_CONNECTED && attempts < maxAttempts) {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+    }
+    Serial.println();
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.printf("[WiFi] Conectado exitosamente a '%s' (IP: %s)\n", 
+                      WiFi.SSID().c_str(), WiFi.localIP().toString().c_str());
+        return true;
+    }
+
+    Serial.println("[WiFi] No se pudo conectar a ninguna red Wi-Fi en el tiempo limite.");
+    return false;
+}
+
+// =====================================================================================
+// SETUP PRINCIPAL
+// =====================================================================================
 void setup() {
     Serial.begin(115200);
-    delay(300);
+    delay(200);
     Serial.println("\n========================================================");
     Serial.printf(" [XpriT Robotics] ESP-KC Iniciando en %s\n", BOARD_NAME);
     Serial.println("========================================================");
 
     pinMode(BUTTON_PIN, BUTTON_PIN_MODE);
-    delay(100); // Estabilizar lectura del pin
+    delay(50);
 
     setupDisplay();
 
-    // Comprobar motivo del despertar
-    esp_sleep_wakeup_cause_t wakeupReason = esp_sleep_get_wakeup_cause();
-    bool wokeFromSleep = (wakeupReason == ESP_SLEEP_WAKEUP_EXT0 || 
-                          wakeupReason == ESP_SLEEP_WAKEUP_GPIO || 
-                          wakeupReason == ESP_SLEEP_WAKEUP_TIMER);
-
-    // Solo mostrar test de color en arranque en frío (al enchufar cable/batería)
-    if (!wokeFromSleep) {
-        showColorCalibrationTest();
+    // 1. Iniciar LittleFS y Preferences
+    if (!LittleFS.begin(true)) {
+        Serial.println("[LittleFS] Error o particion inicializada.");
     }
-
-    // Iniciar memoria flash no volátil
     prefs.begin("espkc", false);
     lastMessageId = prefs.getInt("last_id", 0);
     prefs.getString("my_id", myDeviceId, sizeof(myDeviceId));
@@ -232,148 +330,95 @@ void setup() {
     prefs.getString("server_host", serverHost, sizeof(serverHost));
 
     Serial.printf("[Config] Mi ID: %s | Pareja: %s | Ultimo Msg ID: #%d\n", myDeviceId, partnerId, lastMessageId);
-    Serial.printf("[Config] Servidor: %s\n", serverHost);
 
-    // Solo forzar portal si se arranca en frío manteniendo pulsado el botón (evita falsos positivos al despertar)
+    // Comprobar motivo del despertar
+    esp_sleep_wakeup_cause_t wakeupReason = esp_sleep_get_wakeup_cause();
+    bool wokeFromSleep = (wakeupReason == ESP_SLEEP_WAKEUP_EXT0 || 
+                          wakeupReason == ESP_SLEEP_WAKEUP_GPIO || 
+                          wakeupReason == ESP_SLEEP_WAKEUP_TIMER);
+
+    // 2. ¡MOSTRAR IMAGEN O TEXTO DE INMEDIATO!
+    // Al despertar, la pantalla se enciende y muestra el contenido guardado en 15 milisegundos
+    showCachedContent();
+
+    // 3. Comprobar pulsación del botón
     bool forcePortal = false;
-    if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE && !wokeFromSleep) {
-        delay(600);
-        if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE) {
-            forcePortal = true;
-            Serial.println("[Boton] Boton presionado al encender -> Forzando Portal Cautivo.");
-        }
-    }
+    bool sendReply = false;
 
-    bool connected = false;
-
-    // 1. Intentar conexión directa si el usuario puso SSID en el código
-    if (!forcePortal && strlen(WIFI_SSID) > 0) {
-        Serial.printf("[WiFi] Intentando conexion directa a: %s ...\n", WIFI_SSID);
-        showConnectingScreen(WIFI_SSID);
-
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(WIFI_SSID, WIFI_PASS);
-
-        int attempts = 0;
-        while (WiFi.status() != WL_CONNECTED && attempts < 25) {
-            delay(500);
-            Serial.print(".");
-            attempts++;
-        }
-        Serial.println();
-
-        if (WiFi.status() == WL_CONNECTED) {
-            connected = true;
-            Serial.println("[WiFi] Conectado exitosamente con credenciales directas!");
-        } else {
-            Serial.println("[WiFi] No se pudo conectar a la red directa. Probando WiFiManager...");
-        }
-    }
-
-    // 2. Si no conectó directamente, usar WiFiManager (Portal Cautivo)
-    if (!connected) {
-        WiFiManager wm;
-        wm.setConnectTimeout(15);       // Tiempo maximo intentando conectar a red guardada
-        wm.setConfigPortalTimeout(180); // 3 minutos de espera en modo AP antes de suspender
-
-        // Callback visual cuando entra en modo Portal Cautivo (AP)
-        wm.setAPCallback([](WiFiManager *myWM) {
-            Serial.println("\n--------------------------------------------------------");
-            Serial.println(" [WIFI] MODO PORTAL CAUTIVO ACTIVADO");
-            Serial.printf(" [WIFI] 1. Desde tu celular o PC conectate a la red Wi-Fi: %s\n", myWM->getConfigPortalSSID().c_str());
-            Serial.printf(" [WIFI] 2. Abre tu navegador en: http://%s\n", WiFi.softAPIP().toString().c_str());
-            Serial.println("--------------------------------------------------------\n");
-
-            showConfigPortalScreen(myWM->getConfigPortalSSID().c_str());
-        });
-
-        // Parámetros personalizables en el portal
-        WiFiManagerParameter custom_my_id("my_id", "Mi Nombre/ID de Llavero", myDeviceId, 32);
-        WiFiManagerParameter custom_partner_id("partner_id", "ID de mi Pareja/Amigo", partnerId, 32);
-        WiFiManagerParameter custom_server("server", "URL Servidor (ej: https://...)", serverHost, 128);
-
-        wm.addParameter(&custom_my_id);
-        wm.addParameter(&custom_partner_id);
-        wm.addParameter(&custom_server);
-
-        if (!forcePortal) {
-            showConnectingScreen("WiFi Guardado");
-        }
-
-        if (forcePortal) {
-            connected = wm.startConfigPortal("XpriT-Llavero-Setup");
-        } else {
-            connected = wm.autoConnect("XpriT-Llavero-Setup");
-        }
-
-        // Guardar parámetros si se cambiaron en el portal web
-        if (connected) {
-            if (strlen(custom_my_id.getValue()) > 0) {
-                strcpy(myDeviceId, custom_my_id.getValue());
-                prefs.putString("my_id", myDeviceId);
-            }
-            if (strlen(custom_partner_id.getValue()) > 0) {
-                strcpy(partnerId, custom_partner_id.getValue());
-                prefs.putString("partner_id", partnerId);
-            }
-            if (strlen(custom_server.getValue()) > 0) {
-                strcpy(serverHost, custom_server.getValue());
-                prefs.putString("server_host", serverHost);
-            }
-        }
-    }
-
-    // Si fallaron todos los intentos de conexión Wi-Fi
-    if (!connected) {
-        Serial.println("\n[WiFi] No fue posible conectar al Wi-Fi.");
-        showErrorScreen("Sin WiFi", "Revisa red/clave");
-        delay(3000);
-
-        #if ENABLE_DEEP_SLEEP
-            enterDeepSleep(10 * 60); // Duerme 10 minutos
-        #else
-            Serial.println("[Modo USB] Esperando 10 segundos antes de reiniciar...");
-            delay(10000);
-            ESP.restart();
-        #endif
-    }
-
-    // Wi-Fi conectado exitosamente
-    Serial.println("\n========================================================");
-    Serial.printf(" [WiFi] CONECTADO A: %s\n", WiFi.SSID().c_str());
-    Serial.printf(" [WiFi] IP ASIGNADA:  %s\n", WiFi.localIP().toString().c_str());
-    Serial.printf(" [WiFi] POTENCIA:     %d dBm\n", WiFi.RSSI());
-    Serial.println("========================================================\n");
-
-    showConnectedScreen();
-    delay(1500);
-
-    // Si el botón está pulsado, enviar mensaje rápido
     if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE) {
-        sendQuickReply();
+        unsigned long pressStart = millis();
+        while (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE) {
+            // Si mantiene pulsado más de 2 segundos:
+            if (millis() - pressStart > 2000) {
+                if (!wokeFromSleep && lastMessageId == 0) {
+                    forcePortal = true;
+                    Serial.println("[Boton] Presionado prolongado -> Forzando Portal Cautivo.");
+                } else {
+                    sendReply = true;
+                    Serial.println("[Boton] Presionado prolongado -> Enviar mensaje rapido de amor.");
+                }
+                break;
+            }
+            delay(50);
+        }
     }
 
-    // Primera consulta al servidor
-    checkServerMessages();
-    lastPollMillis = millis();
+    // Portal cautivo solo si es el primer arranque y no hay ninguna red configurada
+    if (forcePortal || (lastMessageId == 0 && strlen(WIFI_SSID) == 0 && WiFi.SSID().length() == 0)) {
+        WiFiManager wm;
+        wm.setConnectTimeout(15);
+        wm.setConfigPortalTimeout(180);
+        showConfigPortalScreen("XpriT-Llavero-Setup");
+        wm.startConfigPortal("XpriT-Llavero-Setup");
+    }
+
+    // 4. Intentar conexión Wi-Fi en segundo plano mientras el usuario ya está viendo su foto
+    bool connected = connectWiFiQuick(7); // 7 segundos de espera máxima
+
+    if (!connected) {
+        // SIN WI-FI: Borde rojo sobre la imagen/texto (Modo Offline)
+        Serial.println("[Estado] Sin Wi-Fi -> Borde ROJO (Modo Offline)");
+        drawStatusBorder(COLOR_ACCENT); // Borde rojo
+    } else {
+        // CON WI-FI: Borde verde y consultar al servidor
+        Serial.println("[Estado] Wi-Fi OK -> Borde VERDE");
+        drawStatusBorder(COLOR_SUCCESS); // Borde verde
+
+        if (sendReply) {
+            sendQuickReply();
+            // Restaurar contenido y marco verde tras enviar
+            showCachedContent();
+            drawStatusBorder(COLOR_SUCCESS);
+        }
+
+        // Consultar al servidor: si hay algo nuevo se descarga y actualiza la pantalla
+        checkServerMessages();
+    }
+
+    // 5. Mantener la pantalla encendida para que el usuario pueda contemplarla
+    Serial.printf("[Pantalla] Visible por %d segundos...\n", DISPLAY_ON_SECONDS);
+    delay(DISPLAY_ON_SECONDS * 1000UL);
 
     #if ENABLE_DEEP_SLEEP
-        // En modo ahorro de batería entra a Deep Sleep (despierta por botón o timer)
+        // Entrar en Deep Sleep (despierta por botón o temporizador periódico)
         enterDeepSleep(SLEEP_DURATION_MINUTES * 60);
     #else
-        Serial.println("[Modo USB] Manteniendo ESP32 despierto para pruebas continuas.");
+        Serial.println("[Modo USB] Manteniendo encendido para pruebas.");
+        lastPollMillis = millis();
     #endif
 }
 
 void loop() {
 #if ENABLE_DEEP_SLEEP
-    // En modo Deep Sleep no se ejecuta el loop
+    // En modo Deep Sleep el ESP32 se apaga y no llega al loop
 #else
-    // Modo desarrollo por USB: bucle continuo sin apagar el ESP32
+    // Modo USB de desarrollo:
     if (digitalRead(BUTTON_PIN) == BUTTON_ACTIVE_STATE) {
-        delay(200); // Debounce
+        delay(200);
         Serial.println("\n[Boton] Pulsado -> Enviando respuesta rapida...");
         sendQuickReply();
+        showCachedContent();
+        drawStatusBorder(COLOR_SUCCESS);
         delay(1000);
         checkServerMessages();
         lastPollMillis = millis();
@@ -592,36 +637,39 @@ void checkServerMessages() {
             const char* content = doc["message"]["content"];
             bool hasImage = doc["message"]["hasImage"];
 
-            Serial.printf(">>> MOSTRANDO MENSAJE! ID: #%d | De: %s | Tipo: %s <<<\n", msgId, from, type);
+            // Comprobar si hay un mensaje nuevo respecto al que ya mostramos de la memoria local
+            if (msgId != lastMessageId) {
+                Serial.printf(">>> NUEVO MENSAJE DETECTADO! ID: #%d | De: %s <<<\n", msgId, from);
 
-            if (hasImage) {
-                // Descargar imagen RGB565 calibrada
-                fetchAndDrawRawImage(msgId);
+                if (hasImage) {
+                    // Descargar imagen RGB565 calibrada y guardarla en Flash (LittleFS)
+                    fetchAndDrawRawImage(msgId);
+                    prefs.putBool("last_has_img", true);
+                } else {
+                    // Mostrar tarjeta de texto y guardarla en memoria Flash
+                    showMessageUI(from, content, msgId);
+                    prefs.putString("last_from", from);
+                    prefs.putString("last_content", content);
+                    prefs.putBool("last_has_img", false);
+                }
+
+                lastMessageId = msgId;
+                prefs.putInt("last_id", msgId);
+
+                // Marco verde confirmando nueva actualización recibida
+                drawStatusBorder(COLOR_SUCCESS);
             } else {
-                // Mostrar tarjeta de texto con el mensaje recibido
-                showMessageUI(from, content, msgId);
+                Serial.printf("[HTTP] Mensaje #%d ya esta en pantalla. Todo al dia.\n", msgId);
+                // Confirmar marco verde indicando conexion y sincronizacion completas
+                drawStatusBorder(COLOR_SUCCESS);
             }
-
-            lastMessageId = msgId;
-            prefs.putInt("last_id", msgId);
-
-            // Mantener mensaje en pantalla para que el usuario pueda apreciarlo
-            Serial.printf("[Pantalla] Manteniendo visible por %d segundos...\n", DISPLAY_ON_SECONDS);
-            delay(DISPLAY_ON_SECONDS * 1000UL);
         } else {
             Serial.println("[HTTP] No hay mensajes registrados en el servidor para este usuario.");
-            tft.fillScreen(COLOR_BG);
         }
     } else {
         Serial.printf("[HTTP] Error en consulta: Codigo %d\n", httpCode);
-        char errBuf[32];
-        if (httpCode > 0) {
-            snprintf(errBuf, sizeof(errBuf), "HTTP Codigo %d", httpCode);
-        } else {
-            snprintf(errBuf, sizeof(errBuf), "Fallo de conexion");
-        }
-        showErrorScreen("Error Servidor", errBuf);
-        delay(3000);
+        // Si falla la consulta al servidor, el borde rojo advierte el problema pero la imagen sigue en pantalla
+        drawStatusBorder(COLOR_ACCENT);
     }
 
     http.end();
@@ -701,8 +749,13 @@ void fetchAndDrawRawImage(int messageId) {
 #endif
                 }
 
+                // 1. Mostrar en pantalla
                 tft.drawRGBBitmap(0, 0, p16, 160, 80);
-                Serial.println("[TFT] Imagen renderizada correctamente con colores calibrados!");
+
+                // 2. Guardar en memoria flash interna (LittleFS) para que esté disponible offline
+                saveCachedImage(p16, 160 * 80);
+
+                Serial.println("[TFT] Imagen renderizada y guardada en cache offline!");
             } else {
                 Serial.println("[HTTP] Descarga incompleta de la imagen.");
             }
