@@ -36,14 +36,30 @@
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
 
-// Definición de pines
-#define TFT_CS    7
-#define TFT_DC    3
-#define TFT_RST   1
-#define TFT_MOSI  6
-#define TFT_SCLK  4
-#define TFT_BLK   2
-#define BUTTON_PIN 9 // Botón BOOT en el ESP32-C3 SuperMini
+// -------------------------------------------------------------------------------------
+// CONFIGURACIÓN AUTOMÁTICA DE PINES (Detecta si es ESP32-C3 o ESP32 DevKit clásico)
+// -------------------------------------------------------------------------------------
+#if defined(CONFIG_IDF_TARGET_ESP32C3)
+  // Configuración para ESP32-C3 SuperMini (RISC-V)
+  #define BOARD_NAME  "ESP32-C3 SuperMini"
+  #define TFT_CS      7
+  #define TFT_DC      3
+  #define TFT_RST     1
+  #define TFT_MOSI    6
+  #define TFT_SCLK    4
+  #define TFT_BLK     2
+  #define BUTTON_PIN  9 // Botón BOOT en el C3 SuperMini
+#else
+  // Configuración para ESP32 DevKit V1 / WROOM-32 clásico (30 o 38 pines)
+  #define BOARD_NAME  "ESP32 DevKit WROOM"
+  #define TFT_CS      5
+  #define TFT_DC      2
+  #define TFT_RST     4
+  #define TFT_MOSI    23 // VSPI MOSI
+  #define TFT_SCLK    18 // VSPI SCK
+  #define TFT_BLK     15
+  #define BUTTON_PIN  0  // Botón BOOT en el ESP32 clásico (GPIO 0)
+#endif
 
 // Objeto de pantalla
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
@@ -377,9 +393,16 @@ void enterDeepSleep(int sleepSeconds) {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
 
-    // 3. Configurar despertares: por temporizador Y por botón físico (GPIO 9)
+    // 3. Configurar despertares: por temporizador Y por botón físico
     esp_sleep_enable_timer_wakeup((uint64_t)sleepSeconds * 1000000ULL);
+
+#if defined(CONFIG_IDF_TARGET_ESP32C3)
+    // ESP32-C3 admite wakeup en cualquier GPIO
     esp_deep_sleep_enable_gpio_wakeup(1ULL << BUTTON_PIN, ESP_GPIO_WAKEUP_GPIO_LOW);
+#else
+    // ESP32 clásico (WROOM) usa ext0 en pines RTC (GPIO 0 es el botón BOOT)
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_PIN, 0);
+#endif
 
     // 4. Iniciar Deep Sleep
     esp_deep_sleep_start();
