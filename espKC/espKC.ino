@@ -69,6 +69,9 @@ const char* WIFI_PASS = ""; // Tu clave de Wi-Fi
 #define ENABLE_DEEP_SLEEP      false
 #define POLL_INTERVAL_SECONDS  15 // Cada cuántos segundos consulta en modo despierto
 
+// Si los colores se ven como en negativo (ej. blanco por negro o cyan por rojo), cámbialo a true/false:
+#define INVERT_DISPLAY_COLORS  false
+
 // =====================================================================================
 // 3. IDENTIFICADORES Y SERVIDOR
 // =====================================================================================
@@ -314,7 +317,7 @@ void setupDisplay() {
 
     tft.initR(INITR_MINI160x80);
     tft.setRotation(3);       // Modo apaisado (160 de ancho x 80 de alto)
-    tft.invertDisplay(true);  // Colores reales para panel IPS ST7735S
+    tft.invertDisplay(INVERT_DISPLAY_COLORS); // Configuración de colores reales
     tft.fillScreen(COLOR_BG);
 }
 
