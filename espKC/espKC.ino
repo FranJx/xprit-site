@@ -111,17 +111,49 @@ int lastMessageId      = 0;
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 Preferences prefs;
 
-// Paleta de colores RGB565
-#define COLOR_BG        0x0842 // Negro azulado profundo
-#define COLOR_HEADER    0x18E3 // Azul oscuro
-#define COLOR_ACCENT    0xF800 // Rojo XpriT
-#define COLOR_CYAN      0x07FF // Cyan neón
-#define COLOR_TEXT      0xFFFF // Blanco
-#define COLOR_MUTED     0x8410 // Gris suave
-#define COLOR_SUCCESS   0x07E0 // Verde brillante
+// =====================================================================================
+// CALIBRACIÓN DE COLOR (Corrige el "Rojo que se ve Verdoso / Cyan")
+// =====================================================================================
+// Modo 1 (Por defecto): Byteswap (0x00F8). Convierte el verdoso en Rojo puro en ESP32.
+// Modo 2: BGR swap (0x001F). Para pantallas que intercambian Rojo y Azul.
+// Modo 0: RGB directo clásico (0xF800).
+#define COLOR_CALIBRATION_MODE 1
+
+#if COLOR_CALIBRATION_MODE == 1
+  // Modo 1: Byteswap para pantallas con orden Little-Endian en bus SPI
+  #define COLOR_BG        0x4208 // Fondo oscuro
+  #define COLOR_HEADER    0xE318 // Azul
+  #define COLOR_ACCENT    0x00F8 // Rojo puro XpriT (antes se veia verdoso como 0xF800)
+  #define COLOR_CYAN      0xFF07 // Cyan neón
+  #define COLOR_TEXT      0xFFFF // Blanco
+  #define COLOR_MUTED     0x1084 // Gris
+  #define COLOR_SUCCESS   0xE007 // Verde brillante
+  #define COLOR_BLUE      0x1F00 // Azul puro
+#elif COLOR_CALIBRATION_MODE == 2
+  // Modo 2: Intercambio BGR
+  #define COLOR_BG        0x0842
+  #define COLOR_HEADER    0x18E3
+  #define COLOR_ACCENT    0x001F // Rojo en modo BGR
+  #define COLOR_CYAN      0xFFE0 // Cyan en modo BGR
+  #define COLOR_TEXT      0xFFFF
+  #define COLOR_MUTED     0x8410
+  #define COLOR_SUCCESS   0x07E0
+  #define COLOR_BLUE      0xF800
+#else
+  // Modo 0: RGB nativo
+  #define COLOR_BG        0x0842
+  #define COLOR_HEADER    0x18E3
+  #define COLOR_ACCENT    0xF800
+  #define COLOR_CYAN      0x07FF
+  #define COLOR_TEXT      0xFFFF
+  #define COLOR_MUTED     0x8410
+  #define COLOR_SUCCESS   0x07E0
+  #define COLOR_BLUE      0x001F
+#endif
 
 // Prototipos
 void setupDisplay();
+void showColorCalibrationTest();
 void showConnectingScreen(const char* targetName);
 void showConnectedScreen();
 void showConfigPortalScreen(const char* apName);
@@ -146,6 +178,7 @@ void setup() {
     delay(100); // Estabilizar lectura del pin
 
     setupDisplay();
+    showColorCalibrationTest();
 
     // Iniciar memoria flash no volátil
     prefs.begin("espkc", false);
@@ -319,6 +352,28 @@ void setupDisplay() {
     tft.setRotation(3);       // Modo apaisado (160 de ancho x 80 de alto)
     tft.invertDisplay(INVERT_DISPLAY_COLORS); // Configuración de colores reales
     tft.fillScreen(COLOR_BG);
+}
+
+void showColorCalibrationTest() {
+    tft.fillScreen(0x0000); // Negro de fondo para prueba
+
+    // 3 bloques de prueba: Rojo, Verde, Azul
+    tft.fillRect(8, 8, 42, 38, COLOR_ACCENT);
+    tft.fillRect(58, 8, 42, 38, COLOR_SUCCESS);
+    tft.fillRect(108, 8, 42, 38, COLOR_BLUE);
+
+    tft.setTextColor(0xFFFF);
+    tft.setTextSize(1);
+    tft.setCursor(12, 54);
+    tft.print("ROJO");
+
+    tft.setCursor(60, 54);
+    tft.print("VERDE");
+
+    tft.setCursor(112, 54);
+    tft.print("AZUL");
+
+    delay(2000);
 }
 
 void showConnectingScreen(const char* targetName) {
@@ -567,6 +622,12 @@ void fetchAndDrawRawImage(int messageId) {
 
             Serial.printf("[HTTP] Bytes leidos: %d / 25600\n", bytesRead);
             if (bytesRead == 160 * 80 * 2) {
+#if COLOR_CALIBRATION_MODE == 1
+                uint16_t* p = (uint16_t*)imgBuffer;
+                for (int i = 0; i < 160 * 80; i++) {
+                    p[i] = (p[i] >> 8) | (p[i] << 8);
+                }
+#endif
                 tft.drawRGBBitmap(0, 0, (uint16_t*)imgBuffer, 160, 80);
                 Serial.println("[TFT] Imagen renderizada correctamente!");
             } else {
