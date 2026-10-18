@@ -13,10 +13,29 @@
  *    3. "ArduinoJson" (por Benoit Blanchon, versión 6.x o 7.x)
  *    4. "WiFiManager" (por tzapu, tablatronix)
  * 
- *  Pines ST7735S (80x160 IPS) recomendados:
- *    ESP32-C3 SuperMini: SCL=4, SDA=6, RES=1, DC=3, CS=7, BLK=2, BOTON=9
- *    ESP32 DevKit WROOM: SCL=18, SDA=23, RES=4, DC=2, CS=5, BLK=15, BOTON=0
- * =====================================================================================
+ *  =====================================================================================
+ *  TABLA DE CONEXIÓN SEGURA — ESP32 DevKit (WROOM-32 clásico):
+ *  -------------------------------------------------------------------------------------
+ *    Pantalla ST7735S       ESP32 DevKit (WROOM)
+ *    GND                ->  GND
+ *    VCC                ->  3.3V (o 5V si tu pantalla tiene regulador 662K)
+ *    SCL / SCK          ->  GPIO 18 (Hardware VSPI SCK)
+ *    SDA / MOSI         ->  GPIO 23 (Hardware VSPI MOSI)
+ *    RES / RST          ->  GPIO 4
+ *    DC                 ->  GPIO 21 (Data / Command)
+ *    CS                 ->  GPIO 5  (Chip Select)
+ *    BLK / LED          ->  GPIO 22 (o directo a 3.3V)
+ *
+ *    ¡IMPORTANTE!: NUNCA conectes la pantalla a los pines marcados como
+ *    CLK, SD0, SD1, SD2, SD3 o CMD (GPIO 6 a 11). Esos pines son de la
+ *    memoria Flash interna y provocan el error "invalid header: 0xffffffff".
+ *    Tampoco uses GPIO 12 ni GPIO 2 para señales de la pantalla.
+ *  -------------------------------------------------------------------------------------
+ *  TABLA DE CONEXIÓN — ESP32-C3 SuperMini (RISC-V):
+ *  -------------------------------------------------------------------------------------
+ *    GND -> GND, VCC -> 3.3V, SCL -> GPIO 4, SDA -> GPIO 6, RES -> GPIO 1,
+ *    DC -> GPIO 3, CS -> GPIO 7, BLK -> GPIO 2, BOTÓN -> GPIO 9
+ *  =====================================================================================
  */
 
 #include <WiFi.h>
@@ -59,6 +78,7 @@ int lastMessageId      = 0;
 // 4. CONFIGURACIÓN AUTOMÁTICA DE PINES
 // =====================================================================================
 #if defined(CONFIG_IDF_TARGET_ESP32C3)
+  // Configuración para ESP32-C3 SuperMini (RISC-V)
   #define BOARD_NAME  "ESP32-C3 SuperMini"
   #define TFT_CS      7
   #define TFT_DC      3
@@ -68,14 +88,16 @@ int lastMessageId      = 0;
   #define TFT_BLK     2
   #define BUTTON_PIN  9 // Botón BOOT en el C3 SuperMini
 #else
+  // Configuración para ESP32 DevKit V1 / WROOM-32 clásico (30 o 38 pines)
+  // PINES 100% SEGUROS: libres de strapping pins y libres del bus SPI Flash
   #define BOARD_NAME  "ESP32 DevKit WROOM"
-  #define TFT_CS      5
-  #define TFT_DC      2
-  #define TFT_RST     4
-  #define TFT_MOSI    23 // VSPI MOSI
-  #define TFT_SCLK    18 // VSPI SCK
-  #define TFT_BLK     15
-  #define BUTTON_PIN  0  // Botón BOOT en el ESP32 clásico (GPIO 0)
+  #define TFT_CS      5   // Hardware VSPI CS
+  #define TFT_DC      21  // GPIO 21 (Libre de strapping)
+  #define TFT_RST     4   // GPIO 4
+  #define TFT_MOSI    23  // Hardware VSPI MOSI (SDA)
+  #define TFT_SCLK    18  // Hardware VSPI SCLK (SCL)
+  #define TFT_BLK     22  // GPIO 22 (Libre de strapping) o conectar directo a 3.3V
+  #define BUTTON_PIN  0   // Botón BOOT integrado en la placa (GPIO 0)
 #endif
 
 // Objeto de pantalla y almacenamiento
